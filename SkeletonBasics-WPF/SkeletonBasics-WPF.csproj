@@ -75,6 +75,8 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="mov18cabeza.cs" />
+    <Compile Include="mov24brazoIzq.cs" />
     <Compile Include="MoveLeftHandtoShoulderXY.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>

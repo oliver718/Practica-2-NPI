@@ -121,6 +121,11 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         private Pen trackedBonePenHead = new Pen(Brushes.Green, 6);
 
         /// <summary>
+        /// Grosor y color de "hueso" brazo
+        /// </summary>
+        private Pen trackedBonePenBrazo = new Pen(Brushes.Green, 6);
+
+        /// <summary>
         /// valdrá true si comenzó el movimiento de cabeza, false en caso contrario
         /// </summary>
         private bool movIniciado = false;
@@ -161,6 +166,11 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         private int gradoActual = 0, gradoPosErguido = 0, 
             gradoActualZ = 0, gradoPosErguidoZ = 0, gradoDif = 0, gradoDifZ = 0;
 
+        /// <summary>
+        /// Detecting move of left hand to shoulder XY (XZ in kinect)
+        /// </summary>
+        private MoveLeftHandtoShoulderXY moveLeftHandtoShoulderXY;
+
 
 //--------------------------------------------------------------------------------------------------
 //------------------------------------------------METODOS-------------------------------------------
@@ -172,6 +182,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         public MainWindow()
         {
             InitializeComponent();
+            moveLeftHandtoShoulderXY = new MoveLeftHandtoShoulderXY();
         }
 
         /// <summary>
@@ -407,7 +418,6 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                 Joint centroPecho = skeleton.Joints[JointType.ShoulderCenter];
 
                 if(contFPS == 0){
-                    //gradoAnterior = gradoActual;
                     gradoPosErguido = gradoInclinacion(centroPecho.Position.X, centroPecho.Position.Y, centroPecho.Position.X, cabeza.Position.Y);
                     gradoPosErguidoZ = gradoInclinacion(centroPecho.Position.Z, centroPecho.Position.Y, centroPecho.Position.Z, cabeza.Position.Y);
                     gradoActual = gradoInclinacion(centroPecho.Position.X, centroPecho.Position.Y, cabeza.Position.X, cabeza.Position.Y);
@@ -607,11 +617,38 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                 //el "hueso" cabeza-hombro lo pintará del color deseado según si el movimiento es correcto o no
                 if (joint0 == skeleton.Joints[JointType.Head]) 
                     drawPen = this.trackedBonePenHead;
+                else if (joint0 == skeleton.Joints[JointType.ShoulderLeft])
+                    drawPen = this.trackedBonePenBrazo;
                 else
                     drawPen = this.trackedBonePen;
             }
 
             drawingContext.DrawLine(drawPen, this.SkeletonPointToScreen(joint0.Position), this.SkeletonPointToScreen(joint1.Position));
+
+            //Detect movement: Left hand to shoulder in XY
+            //Pen correctMove = new Pen(Brushes.Green, 5);
+            //Pen incorrectMove = new Pen(Brushes.Red, 5);
+            //Pen almostMove = new Pen(Brushes.Yellow, 5);
+
+            //if (moveLeftHandtoShoulderXY.fitness24(jointType0, jointType1))
+            //{
+            //    if ((moveLeftHandtoShoulderXY.detectingSkeleton(skeleton)) == 3)
+            //    {
+            //        trackedBonePenBrazo.Brush = Brushes.Green;
+            //    }
+            //    else if (moveLeftHandtoShoulderXY.detectingSkeleton(skeleton) == 0)
+            //    {
+            //        trackedBonePenBrazo.Brush = Brushes.Red;
+            //    }
+            //    else if (moveLeftHandtoShoulderXY.detectingSkeleton(skeleton) == 1)
+            //    {
+            //        trackedBonePenBrazo.Brush = Brushes.Blue;
+            //    }
+            //    else if (moveLeftHandtoShoulderXY.detectingSkeleton(skeleton) == 2)
+            //    {
+            //        trackedBonePenBrazo.Brush = Brushes.Aqua;
+            //    }
+            //}
         }
 
         /// <summary>
