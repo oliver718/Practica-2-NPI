@@ -130,15 +130,15 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         /// </summary>
         private bool movIniciado = false;
 
-        /// <summary>
-        /// valdrá true cuando se complete el movimiento de la cabeza hacia la derecha
-        /// </summary>
-        private bool movDerechaIniciado = false;
+        ///// <summary>
+        ///// valdrá true cuando se complete el movimiento de la cabeza hacia la derecha
+        ///// </summary>
+        //private bool movDerechaIniciado = false;
 
-        /// <summary>
-        /// valdrá true cuando se complete el movimiento de la cabeza hacia la izquierda
-        /// </summary>
-        private bool movIzquierdaIniciado = false;
+        ///// <summary>
+        ///// valdrá true cuando se complete el movimiento de la cabeza hacia la izquierda
+        ///// </summary>
+        //private bool movIzquierdaIniciado = false;
 
         /// <summary>
         /// valdrá true cuando el movimiento de cabeza se realice correctamente
@@ -160,16 +160,26 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         /// </summary>
         private bool esperaInicial = true;
 
-        ///<summary>
-        /// grado de inclinación
-        /// </summary>
-        private int gradoActual = 0, gradoPosErguido = 0, 
-            gradoActualZ = 0, gradoPosErguidoZ = 0, gradoDif = 0, gradoDifZ = 0;
+        /////<summary>
+        ///// grado de inclinación
+        ///// </summary>
+        //private int gradoActual = 0, gradoPosErguido = 0, 
+        //    gradoActualZ = 0, gradoPosErguidoZ = 0, gradoDif = 0, gradoDifZ = 0;
+
+        ///// <summary>
+        ///// Detecting move of left hand to shoulder XY (XZ in kinect)
+        ///// </summary>
+        //private MoveLeftHandtoShoulderXY moveLeftHandtoShoulderXY;
 
         /// <summary>
-        /// Detecting move of left hand to shoulder XY (XZ in kinect)
+        /// crear objeto mov18cabeza
         /// </summary>
-        private MoveLeftHandtoShoulderXY moveLeftHandtoShoulderXY;
+        private mov18cabeza mov18;
+
+        /// <summary>
+        /// crear objeto mov24brazoIzq
+        /// </summary>
+        private mov19brazoDer mov19;
 
 
 //--------------------------------------------------------------------------------------------------
@@ -182,7 +192,9 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         public MainWindow()
         {
             InitializeComponent();
-            moveLeftHandtoShoulderXY = new MoveLeftHandtoShoulderXY();
+            //moveLeftHandtoShoulderXY = new MoveLeftHandtoShoulderXY();
+            mov18 = new mov18cabeza();
+            mov19 = new mov19brazoDer();
         }
 
         /// <summary>
@@ -377,8 +389,8 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
 
                         if (skel.TrackingState == SkeletonTrackingState.Tracked)
                         {
-                            if(!movFinalizado)
-                                this.movimientoCabeza(skel); //llamada al metodo para detectar el movimiento del cuello
+                            if(!movFinalizado)//********************************************************************************************************************************
+                                this.movimiento18y19(skel); //llamada al metodo para detectar los movimientos
                             this.DrawBonesAndJoints(skel, dc);
                         }
                         else if (skel.TrackingState == SkeletonTrackingState.PositionOnly)
@@ -404,7 +416,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         /// Metodo que detecta el movimiento de cuello del usuario
         /// </summary>
         /// <param name="skeleton">objeto esqueleto</param>
-        private void movimientoCabeza(Skeleton skeleton)
+        private void movimiento18y19(Skeleton skeleton)
         {
             //Colores utilizados:
                 //Marcar posiciones (cabeza en centro, cabeza en derecha) ---> color agua
@@ -412,82 +424,112 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                 //movimiento erroneo ---> rojo
                 //movimiento finalizado ---> verde
 
-            if (!esperaInicial) //una vez que la espera inicial (2 segundo) se cumpla
+            if (!esperaInicial) //una vez que la espera inicial (2 segundos) se cumpla
             {
                 Joint cabeza = skeleton.Joints[JointType.Head];
                 Joint centroPecho = skeleton.Joints[JointType.ShoulderCenter];
+                Joint hombro = skeleton.Joints[JointType.ShoulderRight];
+                Joint codo = skeleton.Joints[JointType.ElbowRight];
+                Joint munieca = skeleton.Joints[JointType.WristRight];
 
-                if(contFPS == 0){
-                    gradoPosErguido = gradoInclinacion(centroPecho.Position.X, centroPecho.Position.Y, centroPecho.Position.X, cabeza.Position.Y);
-                    gradoPosErguidoZ = gradoInclinacion(centroPecho.Position.Z, centroPecho.Position.Y, centroPecho.Position.Z, cabeza.Position.Y);
-                    gradoActual = gradoInclinacion(centroPecho.Position.X, centroPecho.Position.Y, cabeza.Position.X, cabeza.Position.Y);
-                    gradoActualZ = gradoInclinacion(centroPecho.Position.Z, centroPecho.Position.Y, cabeza.Position.Z, cabeza.Position.Y);
-                    gradoDif = gradoPosErguido - gradoActual;
-                    gradoDifZ = System.Math.Abs(gradoPosErguidoZ - (gradoActualZ+10)); //se suma 10 para regular el error de kinect en la detección
+                if (contFPS == 0)//Cada tercio de segundo se actualizarán los grados de inclinación de las partes del cuerpo involucradas en los movimientos
+                {
+                    mov18.actualizarGradosInclinacion(cabeza, centroPecho);
+                    mov19.actualizarGradosInclinacion(hombro, codo, munieca);
                 }
+
                 contFPS++;
-                if(contFPS == 10)
+                if(contFPS == FPS/3)
                     contFPS = 0;
 
-                    
-                //si no se ha iniciado el movimiento y el usuario esta con la cabeza recta se puede iniciar el movimiento
-                if (!movIniciado && gradoDif < 2 && gradoDifZ <= 15)
+                if (!movIniciado)
                 {
-                    movIniciado = true;
-                    movDerechaIniciado = true;
-                    this.trackedBonePenHead.Brush = Brushes.Aqua;
-                    lblRepetir.Visibility = Visibility.Hidden;
+                    this.trackedBonePenHead.Brush = Brushes.Yellow;
+                    this.trackedBonePenBrazo.Brush = Brushes.Yellow;
+                    txtHC.Text = System.Convert.ToString(mov19.getHombroCodo());
+                    txtCM.Text = System.Convert.ToString(mov19.getCodoMunieca());
+                    txtHCZ.Text = System.Convert.ToString(mov19.getHombroCodoZ());
+                    txtCMZ.Text = System.Convert.ToString(mov19.getCodoMuniecaZ());
+                    if (mov19.preguntarIniciarMov() && mov18.preguntarIniciarMov())
+                        movIniciado = true;
+                }
+                else
+                {
+                    //si no se ha iniciado el movimiento y el usuario esta con la cabeza recta se puede iniciar el movimiento
+                    if (mov18.preguntarIniciarMov() && mov19.preguntarIniciarMov())
+                    {
+                        mov18.iniciarMov();
+                        mov19.iniciarMov();
+                        //movIniciado = true;
+                        this.trackedBonePenHead.Brush = Brushes.Aqua;
+                        this.trackedBonePenBrazo.Brush = Brushes.Aqua;
+                        lblRepetir.Visibility = Visibility.Hidden; //ocultar el texto de repetir
 
-                }
-                //movimiento incorrecto (cabeza hacia adelante o hacia atrás) se avisa con el color rojo y reiniciando el movimiento
-                else if (movIniciado && (gradoDifZ > 15))
-                {
-                    this.trackedBonePenHead.Brush = Brushes.Red;
-                    txtGrados.Text = "";
-                    txtZ.Text = "";
-                    movIniciado = movDerechaIniciado = movIzquierdaIniciado = false;
-                    lblRepetir.Visibility = Visibility.Visible;
-                }
-                //cuando se alcanza el maximo del movimiento a la derecha
-                else if (movDerechaIniciado && gradoDif >= 25)
-                {
-                    movIzquierdaIniciado = true;
-                    movDerechaIniciado = false;
-                    this.trackedBonePenHead.Brush = Brushes.Aqua;
-                }
-                //entra cuando el usuario esta moviendo el cuello hacia la derecha
-                else if (movDerechaIniciado && gradoDif < 25 && gradoDif > 3)
-                {
-                    this.trackedBonePenHead.Brush = Brushes.Blue;
-                }
-                //cuando se alcanza el maximo del movimiento a la izquierda (finaliza el ejercicio)
-                else if (movIzquierdaIniciado && gradoDif <= -25)
-                {
-                    movIzquierdaIniciado = false;
-                    movFinalizado = true;
-                    movIniciado = false;
-                    this.trackedBonePenHead.Brush = Brushes.Green;
-                    txtGrados.Text = "";
-                    txtZ.Text = "";
-                    lblFin.Visibility = Visibility.Visible;
-                }
-                ////entra cuando el usuario esta moviendo el cuello hacia la izquierda, 
-                else if (movIzquierdaIniciado && gradoDif > -25 && gradoDif < 22)
-                {
-                    this.trackedBonePenHead.Brush = Brushes.Blue;
-                }
+                    }
+                    //movimiento incorrecto (cabeza hacia adelante o hacia atrás) se avisa con el color rojo y reiniciando el movimiento
+                    else if (mov18.preguntarMovIncorrecto())
+                    {
+                        this.trackedBonePenHead.Brush = Brushes.Red;
+                        movIniciado = false;
+                        mov18.movIncorrecto();
+                        mov19.movIncorrecto();
+                        lblRepetir.Visibility = Visibility.Visible;
+                    }
+                    else if (mov19.preguntarMovIncorrecto())
+                    {
+                        this.trackedBonePenBrazo.Brush = Brushes.Red;
+                        movIniciado = false;
+                        mov18.movIncorrecto();
+                        mov19.movIncorrecto();
+                        lblRepetir.Visibility = Visibility.Visible;
+                    }
+                    //cuando se alcanza el maximo del movimiento a la derecha
+                    else if (mov18.preguntarMaxMovDerecha() && mov19.preguntarMaxMovArriba())
+                    {
+                        mov18.maxMovDerecha();
+                        mov19.maxMovArriba();
+                        this.trackedBonePenHead.Brush = Brushes.Aqua;
+                        this.trackedBonePenBrazo.Brush = Brushes.Aqua;
+                    }
+                    //entra cuando el usuario esta moviendo el cuello hacia la derecha
+                    else if (mov18.preguntarMovDerecha() && mov19.preguntarMovArriba())
+                    {
+                        this.trackedBonePenHead.Brush = Brushes.Blue;
+                        this.trackedBonePenBrazo.Brush = Brushes.Blue;
 
-                if (movIniciado && contFPS == 0)//escribir en los textBox los grados
-                {
-                    txtGrados.Text = System.Convert.ToString(gradoDif);
-                    txtZ.Text = System.Convert.ToString(gradoDifZ);
+                    }
+                    //cuando se alcanza el maximo del movimiento a la izquierda (finaliza el ejercicio)
+                    else if (mov18.preguntarMaxMovIzquierda() && mov19.preguntarMaxMovAbajo())
+                    {
+                        mov18.maxMovIzquierda();
+                        mov19.maxMovAbajo();
+                        movIniciado = false;
+                        movFinalizado = true;
+                        this.trackedBonePenHead.Brush = Brushes.Green;
+                        this.trackedBonePenBrazo.Brush = Brushes.Green;
+                        lblFin.Visibility = Visibility.Visible;
+                    }
+                    ////entra cuando el usuario esta moviendo el cuello hacia la izquierda, 
+                    else if (mov18.preguntarMovIzquierda() && mov19.preguntarMovAbajo())
+                    {
+                        this.trackedBonePenHead.Brush = Brushes.Blue;
+                        this.trackedBonePenBrazo.Brush = Brushes.Blue;
+                    }
+
+                    if (movIniciado && contFPS == 0)//escribir en los textBox los grados
+                    {
+                        txtHC.Text = System.Convert.ToString(mov19.getHombroCodo());
+                        txtCM.Text = System.Convert.ToString(mov19.getCodoMunieca());
+                        txtHCZ.Text = System.Convert.ToString(mov19.getHombroCodoZ());
+                        txtCMZ.Text = System.Convert.ToString(mov19.getCodoMuniecaZ());
+                    }
                 }
             }
 
-            else //al inicio se activa una espera inicial de 1 segundos para que el usuario se recoloque
+            else //al inicio se activa una espera inicial de 2 segundos para que el usuario se recoloque
             {
                 contFPS++;
-                if (contFPS == FPS)
+                if (contFPS == FPS*2)
                 {
                     esperaInicial = false;
                     contFPS = 0; //para cuando vuelva a usarse para calcular los grados de inclinación
@@ -496,20 +538,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             }
         }
 
-        /// <summary>
-        /// Metodo que devuelve el grado de inclinación de una recta.
-        /// Entran por parametros las coordenadas de la recta.
-        /// </summary>
-        private int gradoInclinacion(float x1, float y1, float x2, float y2)
-        {
-            float grado = 0;
-            float m = (y2 - y1) / (x2 - x1);
-            grado = (float)(System.Math.Atan(m) * (180 / System.Math.PI));
-            if (grado < 0)
-                grado = 180 + grado;     
-
-            return (int)grado;
-        }
+    
         /// <summary>
         /// Draws a skeleton's bones and joints
         /// </summary>
@@ -617,38 +646,13 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                 //el "hueso" cabeza-hombro lo pintará del color deseado según si el movimiento es correcto o no
                 if (joint0 == skeleton.Joints[JointType.Head]) 
                     drawPen = this.trackedBonePenHead;
-                else if (joint0 == skeleton.Joints[JointType.ShoulderLeft])
+                else if (joint0 == skeleton.Joints[JointType.ShoulderRight] || joint0 == skeleton.Joints[JointType.ElbowRight] || joint0 == skeleton.Joints[JointType.WristRight])
                     drawPen = this.trackedBonePenBrazo;
                 else
                     drawPen = this.trackedBonePen;
             }
 
             drawingContext.DrawLine(drawPen, this.SkeletonPointToScreen(joint0.Position), this.SkeletonPointToScreen(joint1.Position));
-
-            //Detect movement: Left hand to shoulder in XY
-            //Pen correctMove = new Pen(Brushes.Green, 5);
-            //Pen incorrectMove = new Pen(Brushes.Red, 5);
-            //Pen almostMove = new Pen(Brushes.Yellow, 5);
-
-            //if (moveLeftHandtoShoulderXY.fitness24(jointType0, jointType1))
-            //{
-            //    if ((moveLeftHandtoShoulderXY.detectingSkeleton(skeleton)) == 3)
-            //    {
-            //        trackedBonePenBrazo.Brush = Brushes.Green;
-            //    }
-            //    else if (moveLeftHandtoShoulderXY.detectingSkeleton(skeleton) == 0)
-            //    {
-            //        trackedBonePenBrazo.Brush = Brushes.Red;
-            //    }
-            //    else if (moveLeftHandtoShoulderXY.detectingSkeleton(skeleton) == 1)
-            //    {
-            //        trackedBonePenBrazo.Brush = Brushes.Blue;
-            //    }
-            //    else if (moveLeftHandtoShoulderXY.detectingSkeleton(skeleton) == 2)
-            //    {
-            //        trackedBonePenBrazo.Brush = Brushes.Aqua;
-            //    }
-            //}
         }
 
         /// <summary>
