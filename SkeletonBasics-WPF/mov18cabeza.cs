@@ -134,6 +134,11 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             movIniciado = false;
         }
 
+        public bool getFinalizado()
+        {
+            return movFinalizado;
+        }
+
         /// <summary>
         /// Método que devuelve true si el usuario esta moviendo el cuello hacia la izquierda
         /// </summary>

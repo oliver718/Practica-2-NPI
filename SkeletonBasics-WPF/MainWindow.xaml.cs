@@ -100,6 +100,26 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         // ****Dibujo de la imagen que se mostrará
         private DrawingImage imageSource;
 
+        private string cadenaPosInicial = "Cada ejercicio tiene que iniciarlo con la posición que se muestra en la figura:";
+        private string cadenaTutorial = "A continuación se muestra un tutorial de como tiene que ejecutar el ejercicio:";
+        private string cadenaEmpezar = "Coloquese en la posición inicial y espere a que aparezca \"START\" para iniciar el ejercicio\nRecuerde colocarse en la posición inicial antes de cada repetición.";
+
+        private int posEscritura = 0;
+
+        private int contadorErrores = 0;
+        private int contadorDescoordinaciones = 0;
+
+        private int movCorrectos = 0;
+        private int movIncorrectos = 0;
+        private int movRegulares = 0;
+
+        private int contadorRepeticiones = 1;
+
+        private bool tutorialParte1 = false;
+        private bool tutorialParte2 = false;
+        private bool tutorialParte3 = false;
+
+
 
         //----------------------------------
         //--------variables añadidas--------
@@ -130,6 +150,8 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         /// </summary>
         private bool movIniciado = false;
 
+        private bool tutorial = false;
+
         ///// <summary>
         ///// valdrá true cuando se complete el movimiento de la cabeza hacia la derecha
         ///// </summary>
@@ -156,9 +178,9 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         private int contFPS = 0;
 
         ///<summary>
-        /// Espera inicial para que el usuario se coloque en posición
+        /// Variable que valdrá true cuando al iniciar el programa el usuario esté esperando a que se inicie el ejercicio
         /// </summary>
-        private bool esperaInicial = true;
+        private bool iniciar = false;
 
         /////<summary>
         ///// grado de inclinación
@@ -195,6 +217,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             //moveLeftHandtoShoulderXY = new MoveLeftHandtoShoulderXY();
             mov18 = new mov18cabeza();
             mov19 = new mov19brazoDer();
+            txtAyuda.Text = "Pulse el botón \"Iniciar\" para iniciar el ejercicio y situese frente a Kinect para que el tutorial se inicie.\nMas abajo puede ajustar el número de repeticiones que desea hacer.";
         }
 
         /// <summary>
@@ -274,7 +297,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             {
                 // En ImageE se proyectará el esqueleto y en ImageC la imagen en color del senson kinect
                 // Display the drawing using our image control
-                ImageE.Source = this.imageSource;
+                //ImageE.Source = this.imageSource;
 
                 // Turn on the skeleton stream to receive skeleton frames
                 this.sensor.SkeletonStream.Enable();
@@ -379,19 +402,24 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                 // Draw a transparent background to set the render size
                 //Es necesario que se declare el "color" como transparente para poder ver el esqueleto y la imagen del cuerpo
                 dc.DrawRectangle(Brushes.Transparent, null, new Rect(0.0, 0.0, RenderWidth, RenderHeight));
+                
 
                 if (skeletons.Length != 0)
                 {
                     foreach (Skeleton skel in skeletons)
-                    {
-                      
+                    {                      
                         //RenderClippedEdges(skel, dc);  //Desactivada la llamada a esta función por decisión propia
 
                         if (skel.TrackingState == SkeletonTrackingState.Tracked)
                         {
-                            if(!movFinalizado)//********************************************************************************************************************************
-                                this.movimiento18y19(skel); //llamada al metodo para detectar los movimientos
-                            this.DrawBonesAndJoints(skel, dc);
+                            if (tutorial)
+                                iniciarTutorial();
+                            else
+                            {
+                                if (!movFinalizado)//********************************************************************************************************************************
+                                    this.movimiento18y19(skel); //llamada al metodo para detectar los movimientos
+                                this.DrawBonesAndJoints(skel, dc);
+                            }
                         }
                         else if (skel.TrackingState == SkeletonTrackingState.PositionOnly)
                         {
@@ -418,127 +446,84 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         /// <param name="skeleton">objeto esqueleto</param>
         private void movimiento18y19(Skeleton skeleton)
         {
-            //Colores utilizados:
-                //Marcar posiciones (cabeza en centro, cabeza en derecha) ---> color agua
-                //movimiento en curso ---> color azul
-                //movimiento erroneo ---> rojo
-                //movimiento finalizado ---> verde
+            Joint cabeza = skeleton.Joints[JointType.Head];
+            Joint centroPecho = skeleton.Joints[JointType.ShoulderCenter];
+            Joint hombro = skeleton.Joints[JointType.ShoulderRight];
+            Joint codo = skeleton.Joints[JointType.ElbowRight];
+            Joint munieca = skeleton.Joints[JointType.WristRight];
 
-            if (!esperaInicial) //una vez que la espera inicial (2 segundos) se cumpla
+            if (contFPS == 0)//Cada tercio de segundo se actualizarán los grados de inclinación de las partes del cuerpo involucradas en los movimientos
             {
-                Joint cabeza = skeleton.Joints[JointType.Head];
-                Joint centroPecho = skeleton.Joints[JointType.ShoulderCenter];
-                Joint hombro = skeleton.Joints[JointType.ShoulderRight];
-                Joint codo = skeleton.Joints[JointType.ElbowRight];
-                Joint munieca = skeleton.Joints[JointType.WristRight];
-
-                if (contFPS == 0)//Cada tercio de segundo se actualizarán los grados de inclinación de las partes del cuerpo involucradas en los movimientos
-                {
-                    mov18.actualizarGradosInclinacion(cabeza, centroPecho);
-                    mov19.actualizarGradosInclinacion(hombro, codo, munieca);
-                }
-
-                contFPS++;
-                if(contFPS == FPS/3)
-                    contFPS = 0;
-
-                if (!movIniciado)
-                {
-                    this.trackedBonePenHead.Brush = Brushes.Yellow;
-                    this.trackedBonePenBrazo.Brush = Brushes.Yellow;
-                    txtHC.Text = System.Convert.ToString(mov19.getHombroCodo());
-                    txtCM.Text = System.Convert.ToString(mov19.getCodoMunieca());
-                    txtHCZ.Text = System.Convert.ToString(mov19.getHombroCodoZ());
-                    txtCMZ.Text = System.Convert.ToString(mov19.getCodoMuniecaZ());
-                    if (mov19.preguntarIniciarMov() && mov18.preguntarIniciarMov())
-                        movIniciado = true;
-                }
-                else
-                {
-                    //si no se ha iniciado el movimiento y el usuario esta con la cabeza recta se puede iniciar el movimiento
-                    if (mov18.preguntarIniciarMov() && mov19.preguntarIniciarMov())
-                    {
-                        mov18.iniciarMov();
-                        mov19.iniciarMov();
-                        //movIniciado = true;
-                        this.trackedBonePenHead.Brush = Brushes.Aqua;
-                        this.trackedBonePenBrazo.Brush = Brushes.Aqua;
-                        lblRepetir.Visibility = Visibility.Hidden; //ocultar el texto de repetir
-
-                    }
-                    //movimiento incorrecto (cabeza hacia adelante o hacia atrás) se avisa con el color rojo y reiniciando el movimiento
-                    else if (mov18.preguntarMovIncorrecto())
-                    {
-                        this.trackedBonePenHead.Brush = Brushes.Red;
-                        movIniciado = false;
-                        mov18.movIncorrecto();
-                        mov19.movIncorrecto();
-                        lblRepetir.Visibility = Visibility.Visible;
-                    }
-                    else if (mov19.preguntarMovIncorrecto())
-                    {
-                        this.trackedBonePenBrazo.Brush = Brushes.Red;
-                        movIniciado = false;
-                        mov18.movIncorrecto();
-                        mov19.movIncorrecto();
-                        lblRepetir.Visibility = Visibility.Visible;
-                    }
-                    //cuando se alcanza el maximo del movimiento a la derecha
-                    else if (mov18.preguntarMaxMovDerecha() && mov19.preguntarMaxMovArriba())
-                    {
-                        mov18.maxMovDerecha();
-                        mov19.maxMovArriba();
-                        this.trackedBonePenHead.Brush = Brushes.Aqua;
-                        this.trackedBonePenBrazo.Brush = Brushes.Aqua;
-                    }
-                    //entra cuando el usuario esta moviendo el cuello hacia la derecha
-                    else if (mov18.preguntarMovDerecha() && mov19.preguntarMovArriba())
-                    {
-                        this.trackedBonePenHead.Brush = Brushes.Blue;
-                        this.trackedBonePenBrazo.Brush = Brushes.Blue;
-
-                    }
-                    //cuando se alcanza el maximo del movimiento a la izquierda (finaliza el ejercicio)
-                    else if (mov18.preguntarMaxMovIzquierda() && mov19.preguntarMaxMovAbajo())
-                    {
-                        mov18.maxMovIzquierda();
-                        mov19.maxMovAbajo();
-                        movIniciado = false;
-                        movFinalizado = true;
-                        this.trackedBonePenHead.Brush = Brushes.Green;
-                        this.trackedBonePenBrazo.Brush = Brushes.Green;
-                        lblFin.Visibility = Visibility.Visible;
-                    }
-                    ////entra cuando el usuario esta moviendo el cuello hacia la izquierda, 
-                    else if (mov18.preguntarMovIzquierda() && mov19.preguntarMovAbajo())
-                    {
-                        this.trackedBonePenHead.Brush = Brushes.Blue;
-                        this.trackedBonePenBrazo.Brush = Brushes.Blue;
-                    }
-
-                    if (movIniciado && contFPS == 0)//escribir en los textBox los grados
-                    {
-                        txtHC.Text = System.Convert.ToString(mov19.getHombroCodo());
-                        txtCM.Text = System.Convert.ToString(mov19.getCodoMunieca());
-                        txtHCZ.Text = System.Convert.ToString(mov19.getHombroCodoZ());
-                        txtCMZ.Text = System.Convert.ToString(mov19.getCodoMuniecaZ());
-                    }
-                }
+                mov18.actualizarGradosInclinacion(cabeza, centroPecho);
+                mov19.actualizarGradosInclinacion(hombro, codo, munieca);
             }
 
-            else //al inicio se activa una espera inicial de 2 segundos para que el usuario se recoloque
+            contFPS++;
+            if(contFPS == FPS/3)
+                contFPS = 0;
+
+            //si no se ha iniciado el movimiento y el usuario esta con la cabeza recta se puede iniciar el movimiento
+            if (mov18.preguntarIniciarMov() && mov19.preguntarIniciarMov())
             {
-                contFPS++;
-                if (contFPS == FPS*2)
+                mov18.iniciarMov();
+                mov19.iniciarMov();
+                movIniciado = true;
+                lblStart.Visibility = Visibility.Visible;
+                txtAyuda.Text = "Ejercicios correctos: " + movCorrectos.ToString() + "\nEjercicios descordinados: " + movRegulares.ToString() +
+                    "\nEjercicios erroneos: " + movIncorrectos.ToString();
+                contadorErrores = 0;
+                contadorDescoordinaciones = 0;
+            }
+            //movimiento incorrecto (cabeza hacia adelante o hacia atrás) se avisa con el color rojo y reiniciando el movimiento
+            else if (mov18.preguntarMovIncorrecto() || mov19.preguntarMovIncorrecto())
+            {
+                contadorErrores++;
+            }
+            //cuando se alcanza el maximo del movimiento a la derecha
+            else if (mov18.preguntarMaxMovDerecha() || mov19.preguntarMaxMovArriba())
+            {
+                if (!mov18.preguntarMaxMovDerecha() || !mov19.preguntarMaxMovArriba())
+                    contadorDescoordinaciones++;
+                if(mov18.preguntarMaxMovDerecha())
+                    mov18.maxMovDerecha();
+                if(mov19.preguntarMaxMovArriba())
+                    mov19.maxMovArriba();
+                lblStart.Visibility = Visibility.Hidden;
+            }
+            //cuando se alcanza el maximo del movimiento a la izquierda (finaliza el ejercicio)
+            else if (mov18.preguntarMaxMovIzquierda() || mov19.preguntarMaxMovAbajo())
+            {
+                if (!mov18.preguntarMaxMovIzquierda() || !mov19.preguntarMaxMovAbajo())
+                    contadorDescoordinaciones++;
+                if (mov18.preguntarMaxMovIzquierda())
+                    mov18.maxMovIzquierda();
+                if (mov19.preguntarMaxMovAbajo())
+                    mov19.maxMovAbajo();
+                if (mov18.getFinalizado() && mov19.getFinalizado())
                 {
-                    esperaInicial = false;
-                    contFPS = 0; //para cuando vuelva a usarse para calcular los grados de inclinación
-                    lblInicio.Visibility = Visibility.Hidden;
+                    contadorRepeticiones--;
+                    movIniciado = false;
+                    actualizarMarcadores();
+                    txtAyuda.Text = "Ejercicios correctos: " + movCorrectos.ToString() + "\nEjercicios descordinados: " + movRegulares.ToString() +
+                    "\nEjercicios erroneos: " + movIncorrectos.ToString();
+                    if (contadorRepeticiones == 0)
+                    {
+                        lblFin.Visibility = Visibility.Visible;
+                        movFinalizado = true;
+                    }
                 }
             }
         }
 
-    
+        private void actualizarMarcadores()
+        {
+            if (contadorErrores > 10)
+                movIncorrectos++;
+            else if (contadorDescoordinaciones > 10)
+                movRegulares++;
+            else
+                movCorrectos++;
+        }
         /// <summary>
         /// Draws a skeleton's bones and joints
         /// </summary>
@@ -685,9 +670,112 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         {
             contFPS = 0;
             movFinalizado = false;
-            lblFin.Visibility = Visibility.Hidden;
-            lblInicio.Visibility = Visibility.Visible;
-            esperaInicial = true;
+            //lblFin.Visibility = Visibility.Hidden;
+            //lblInicio.Visibility = Visibility.Visible;
+            //esperaInicial = true;
+        }
+
+        private void btnIniciar_Click(object sender, RoutedEventArgs e)
+        {
+            tutorial = true;
+            tutorialParte1 = true;
+            txtAyuda.Text = "";
+
+            
+        }
+
+        private void iniciarTutorial()
+        {
+            if (contFPS == 0)
+            {
+                if (tutorialParte1)
+                {
+                    ImageC.Visibility = Visibility.Hidden;
+                    figura1.Visibility = Visibility.Visible;
+                    txtAyuda.Text += cadenaPosInicial[posEscritura].ToString();
+                    posEscritura++;
+                    if (posEscritura == cadenaPosInicial.Length)
+                    {
+                        tutorialParte1 = false;
+                        tutorialParte2 = true;
+                        contFPS = -FPS; //espera para que el usuario vea la pos inicial
+                        posEscritura = 0;
+                    }
+                }
+
+                else if (tutorialParte2)
+                {
+                    if (txtAyuda.Text == cadenaPosInicial)
+                        txtAyuda.Text = "";
+                    txtAyuda.Text += cadenaTutorial[posEscritura].ToString();
+                    posEscritura++;
+                    if (posEscritura == cadenaTutorial.Length)
+                    {
+                        tutorialParte2 = false;
+                        tutorialParte3 = true;
+                        contFPS = -FPS; //espera para que el usuario vea la pos inicial
+                        posEscritura = 0;
+                    }
+                    if (figura1.Visibility == Visibility.Visible)//secuencia de imagenes
+                    {
+                        figura1.Visibility = Visibility.Hidden;
+                        figura2.Visibility = Visibility.Visible;
+                    }
+                    else if (figura2.Visibility == Visibility.Visible)
+                    {
+                        figura2.Visibility = Visibility.Hidden;
+                        figura3.Visibility = Visibility.Visible;
+                    }
+                    else if (figura3.Visibility == Visibility.Visible)
+                    {
+                        figura3.Visibility = Visibility.Hidden;
+                        figura4.Visibility = Visibility.Visible;
+                    }
+                    else if (figura4.Visibility == Visibility.Visible)
+                    {
+                        figura4.Visibility = Visibility.Hidden;
+                        figura5.Visibility = Visibility.Visible;
+                    }
+                    else if (figura5.Visibility == Visibility.Visible)
+                    {
+                        figura5.Visibility = Visibility.Hidden;
+                        figura1.Visibility = Visibility.Visible;
+                    }
+                }
+                else if (tutorialParte3)
+                {
+                    ImageC.Visibility = Visibility.Visible;
+                    figura1.Visibility = Visibility.Hidden;
+                    figura2.Visibility = Visibility.Hidden;
+                    figura3.Visibility = Visibility.Hidden;
+                    figura4.Visibility = Visibility.Hidden;
+                    figura5.Visibility = Visibility.Hidden;
+                    if (txtAyuda.Text == cadenaTutorial)
+                        txtAyuda.Text = "";
+                    txtAyuda.Text += cadenaEmpezar[posEscritura].ToString();
+                    posEscritura++;
+                    if (posEscritura == cadenaEmpezar.Length)
+                    {
+                        tutorialParte3 = false;
+                        tutorial = false;
+                        posEscritura = 0;
+                    }
+                }
+
+            }
+            contFPS++;
+            if (contFPS == FPS / 5)
+                contFPS = 0;
+        }
+
+        private void btnEstablecer_Click(object sender, RoutedEventArgs e)
+        {
+            int repe = int.Parse(txtRepeticiones.Text);
+            if (repe > 1 && repe <= 100)
+                contadorRepeticiones = repe;
         }
     }
 }
+
+
+

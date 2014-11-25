@@ -1,7 +1,7 @@
 ﻿<Window x:Class="Microsoft.Samples.Kinect.SkeletonBasics.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Skeleton Basics" Height="735" Width="770" Loaded="WindowLoaded" Closing="WindowClosing">
+        Title="Skeleton Basics" Height="856" Width="770" Loaded="WindowLoaded" Closing="WindowClosing">
 
     <Window.Resources>
         <SolidColorBrush x:Key="MediumGreyBrush" Color="#ff6e6e6e"/>
@@ -49,8 +49,8 @@
     <Grid Name="layoutGrid" Margin="10 0 10 0">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="670*"/>
+            <RowDefinition Height="47"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <DockPanel Grid.Row="0" Margin="0 0 0 20">
@@ -58,11 +58,23 @@
             <TextBlock DockPanel.Dock="Right" Margin="0 0 -1 0" VerticalAlignment="Bottom" Foreground="{StaticResource MediumGreyBrush}" FontFamily="Segoe UI" FontSize="18">Skeleton Basics</TextBlock>
             <Image Grid.Column="1" Source="Images\Status.png" Stretch="None" HorizontalAlignment="Center" Margin="0 0 0 5"/>
         </DockPanel>
-        <Viewbox Grid.Row="1" Stretch="Uniform" HorizontalAlignment="Center">
+        <Viewbox Grid.Row="1" Stretch="Uniform" Width="640" Height="480" HorizontalAlignment="Center">
             <Image Name="ImageC" Width="640" Height="480"/>
         </Viewbox>
-        <Viewbox Grid.Row="1" Stretch="Uniform" HorizontalAlignment="Center">
-            <Image Name="ImageE" Width="640" Height="480"/>
+        <Viewbox Grid.Row="1" Stretch="Uniform" Width="640" Height="480" HorizontalAlignment="Center">
+            <Image Name="figura1" Source="Images\figura1.png" Width="640" Height="480" Visibility="Hidden"/>
+        </Viewbox>
+        <Viewbox Grid.Row="1" Stretch="Uniform" Width="640" Height="480" HorizontalAlignment="Center">
+            <Image Name="figura2" Source="Images\figura2.png" Width="640" Height="480" Visibility="Hidden"/>
+        </Viewbox>
+        <Viewbox Grid.Row="1" Stretch="Uniform" Width="640" Height="480" HorizontalAlignment="Center">
+            <Image Name="figura3" Source="Images\figura3.png" Width="640" Height="480" Visibility="Hidden"/>
+        </Viewbox>
+        <Viewbox Grid.Row="1" Stretch="Uniform" Width="640" Height="480" HorizontalAlignment="Center">
+            <Image Name="figura4" Source="Images\figura4.png" Width="640" Height="480" Visibility="Hidden" />
+        </Viewbox>
+        <Viewbox Grid.Row="1" Stretch="Uniform" Width="640" Height="480" HorizontalAlignment="Center">
+            <Image Name="figura5" Source="Images\figura5.png" Width="640" Height="480" Visibility="Hidden" />
         </Viewbox>
         <CheckBox Grid.Row="2" Style="{StaticResource SquareCheckBox}" Content="Seated Mode" Height="Auto" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0 10 10 10" Name="checkBoxSeatedMode" Checked="CheckBoxSeatedModeChanged" Unchecked="CheckBoxSeatedModeChanged"/>
         <StatusBar Grid.Row="3" HorizontalAlignment="Stretch" Name="statusBar" VerticalAlignment="Bottom" Background="White" Foreground="{StaticResource MediumGreyBrush}">
@@ -72,13 +84,17 @@
         </StatusBar>
         <TextBox Grid.Row="2" Height="23" HorizontalAlignment="Left" Margin="596,10,0,0" Name="txtHCZ" VerticalAlignment="Top" Width="120" IsReadOnly="True" FontSize="14" FontWeight="Bold" />
         <TextBox Grid.Row="3" Height="23" HorizontalAlignment="Left" Margin="596,0,0,0" Name="txtCMZ" VerticalAlignment="Top" Width="120" FontSize="14" FontWeight="Bold" />
-        <Label Grid.Row="1" Height="63" HorizontalAlignment="Left" Margin="212,371,0,0" Name="lblRepetir" VerticalAlignment="Top" Width="329" Content="¡MAL! ¡Repetimos!" FontSize="36" FontWeight="Bold" Foreground="#FFCF0000" Visibility="Hidden" />
-        <Label Content="¡Perfecto!" FontSize="36" FontWeight="Bold" Foreground="#FF00B400" Height="60" HorizontalAlignment="Left" Margin="265,326,0,0" Name="lblFin" VerticalAlignment="Top" Visibility="Hidden" Width="183" Grid.Row="1" />
-        <Label Content="Mover cabeza derecha-izquierda" FontSize="36" FontWeight="Bold" Foreground="#FF00B400" Height="60" HorizontalAlignment="Left" Margin="87,11,0,0" Name="lblInicio" VerticalAlignment="Top" Visibility="Visible" Width="564" Grid.Row="1" />
-        <Button Content="Repetir" Grid.Row="2" Height="34" HorizontalAlignment="Left" Margin="174,4,0,0" Name="btnRepetir" VerticalAlignment="Top" Width="75" FontSize="15" FontWeight="Normal" Click="btnRepetir_Click" />
+        <Button Content="Repetir" Grid.Row="2" Height="34" HorizontalAlignment="Left" Margin="146,6,0,0" Name="btnRepetir" VerticalAlignment="Top" Width="75" FontSize="15" FontWeight="Normal" Click="btnRepetir_Click" />
         <TextBox Grid.Row="2" Height="23" HorizontalAlignment="Left" Margin="457,10,0,0" Name="txtHC" VerticalAlignment="Top" Width="120" FontWeight="Bold" FontSize="14" />
         <TextBox Height="23" HorizontalAlignment="Left" Margin="457,3,0,0" Name="txtCM" VerticalAlignment="Top" Width="120" Grid.Row="3" FontSize="14" FontWeight="Bold" />
         <Label Content="HC" Grid.Row="2" Height="28" HorizontalAlignment="Left" Margin="395,6,0,0" Name="label1" VerticalAlignment="Top" />
         <Label Content="CM" Height="28" HorizontalAlignment="Left" Margin="395,5,0,0" Name="label2" VerticalAlignment="Top" Grid.Row="3" />
+        <TextBlock  TextWrapping="WrapWithOverflow" FontFamily="Comic Sans MS" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="11,0,1,582" Grid.Row="1" FontSize="20" FontWeight="Bold" Name="txtAyuda" TextAlignment="Center" />
+        <Button FontSize="15" FontWeight="Normal" Height="34" HorizontalAlignment="Left" Margin="243,7,0,0" Name="btnIniciar" VerticalAlignment="Top" Width="75" Grid.Row="2" Content="Iniciar" Click="btnIniciar_Click" />
+        <TextBox Grid.Row="1" Height="23" HorizontalAlignment="Right" Margin="0,608,254,0" Name="txtRepeticiones" VerticalAlignment="Top" Width="120" />
+        <Label Content="Número de repeticiones: " Grid.Row="1" Height="28" HorizontalAlignment="Left" Margin="192,606,0,0" Name="label3" VerticalAlignment="Top" />
+        <Button Content="Establecer" FontSize="15" FontWeight="Normal" Height="34" HorizontalAlignment="Left" Margin="502,601,0,0" Name="btnEstablecer" VerticalAlignment="Top" Width="75" Grid.Row="1" Click="btnEstablecer_Click" />
+        <Label Content="START" Grid.Row="1" Height="75" HorizontalAlignment="Left" Margin="25,581,0,0" Name="lblStart" VerticalAlignment="Top" FontWeight="Bold" FontSize="48" Width="161" Foreground="#FF00B200" Visibility="Hidden" />
+        <Label Content="EJERCICIO FINALIZADO" FontSize="48" FontWeight="Bold" Foreground="#FFCB0000" Height="75" HorizontalAlignment="Left" Margin="25,581,0,0" Name="lblFin" VerticalAlignment="Top" Visibility="Hidden" Width="580" Grid.Row="1" />
     </Grid>
 </Window>

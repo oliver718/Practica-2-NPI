@@ -189,6 +189,11 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             return this.gradoCodoMuniecaZ;
         }
 
+        public bool getFinalizado()
+        {
+            return movFinalizado;
+        }
+
 
 
         /// <summary>
