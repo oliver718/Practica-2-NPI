@@ -16,6 +16,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
     using System.Windows.Media;
     using System.Windows.Media.Imaging;
     using Microsoft.Kinect;
+    using System;
 
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -100,27 +101,6 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         // ****Dibujo de la imagen que se mostrará
         private DrawingImage imageSource;
 
-        private string cadenaPosInicial = "Cada ejercicio tiene que iniciarlo con la posición que se muestra en la figura:";
-        private string cadenaTutorial = "A continuación se muestra un tutorial de como tiene que ejecutar el ejercicio:";
-        private string cadenaEmpezar = "Coloquese en la posición inicial y espere a que aparezca \"START\" para iniciar el ejercicio\nRecuerde colocarse en la posición inicial antes de cada repetición.";
-
-        private int posEscritura = 0;
-
-        private int contadorErrores = 0;
-        private int contadorDescoordinaciones = 0;
-
-        private int movCorrectos = 0;
-        private int movIncorrectos = 0;
-        private int movRegulares = 0;
-
-        private int contadorRepeticiones = 1;
-
-        private bool tutorialParte1 = false;
-        private bool tutorialParte2 = false;
-        private bool tutorialParte3 = false;
-
-
-
         //----------------------------------
         //--------variables añadidas--------
         //----------------------------------
@@ -165,7 +145,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         /// <summary>
         /// valdrá true cuando el movimiento de cabeza se realice correctamente
         /// </summary>
-        private bool movFinalizado = false;
+        private bool movFinalizado = true;
 
         ///<summary>
         /// número de frames por segundo
@@ -177,11 +157,32 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         /// </summary>
         private int contFPS = 0;
 
+        private int contVideo = 0;
+
         ///<summary>
         /// Variable que valdrá true cuando al iniciar el programa el usuario esté esperando a que se inicie el ejercicio
         /// </summary>
-        private bool iniciar = false;
 
+        private string cadenaPosInicial = "Cada ejercicio tiene que iniciarlo con la posición que se muestra en la figura:";
+        private string cadenaTutorial = "A continuación se muestra un tutorial de como tiene que ejecutar el ejercicio:";
+        private string cadenaEmpezar = "Coloquese en la posición inicial para comenzar la sesión";
+
+        private int posEscritura = 0;
+
+        private int contadorErrores = 0;
+        private int contadorDescoordinaciones = 0;
+
+        private int movCorrectos = 0;
+        private int movIncorrectos = 0;
+        private int movDescoordinados = 0;
+
+        private int contadorRepeticiones = 1;
+
+        private bool tutorialParte1 = false;
+        private bool tutorialParte2 = false;
+        private bool tutorialParte3 = false;
+
+        private bool dibujarEsqueleto = false;
         /////<summary>
         ///// grado de inclinación
         ///// </summary>
@@ -215,9 +216,15 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         {
             InitializeComponent();
             //moveLeftHandtoShoulderXY = new MoveLeftHandtoShoulderXY();
+            //try
+            //{
+            //    txtCM.Text = sensor.ElevationAngle.ToString();
+            //}
+            //catch{
+            //}
             mov18 = new mov18cabeza();
             mov19 = new mov19brazoDer();
-            txtAyuda.Text = "Pulse el botón \"Iniciar\" para iniciar el ejercicio y situese frente a Kinect para que el tutorial se inicie.\nMas abajo puede ajustar el número de repeticiones que desea hacer.";
+            txtAyuda.Text = "Pulse el botón \"Iniciar\" para comenzar con el ejercicio.\nAbajo puede ajustar los parametros que desee.";
         }
 
         /// <summary>
@@ -297,7 +304,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             {
                 // En ImageE se proyectará el esqueleto y en ImageC la imagen en color del senson kinect
                 // Display the drawing using our image control
-                //ImageE.Source = this.imageSource;
+                ImageE.Source = this.imageSource;
 
                 // Turn on the skeleton stream to receive skeleton frames
                 this.sensor.SkeletonStream.Enable();
@@ -419,6 +426,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                                 if (!movFinalizado)//********************************************************************************************************************************
                                     this.movimiento18y19(skel); //llamada al metodo para detectar los movimientos
                                 this.DrawBonesAndJoints(skel, dc);
+                                
                             }
                         }
                         else if (skel.TrackingState == SkeletonTrackingState.PositionOnly)
@@ -451,6 +459,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             Joint hombro = skeleton.Joints[JointType.ShoulderRight];
             Joint codo = skeleton.Joints[JointType.ElbowRight];
             Joint munieca = skeleton.Joints[JointType.WristRight];
+            
 
             if (contFPS == 0)//Cada tercio de segundo se actualizarán los grados de inclinación de las partes del cuerpo involucradas en los movimientos
             {
@@ -468,8 +477,9 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                 mov18.iniciarMov();
                 mov19.iniciarMov();
                 movIniciado = true;
-                lblStart.Visibility = Visibility.Visible;
-                txtAyuda.Text = "Ejercicios correctos: " + movCorrectos.ToString() + "\nEjercicios descordinados: " + movRegulares.ToString() +
+                trackedBonePenHead.Brush = Brushes.Yellow;
+                trackedBonePenBrazo.Brush = Brushes.Yellow;
+                txtAyuda.Text = "Ejercicios correctos: " + movCorrectos.ToString() + "\nEjercicios descordinados: " + movDescoordinados.ToString() +
                     "\nEjercicios erroneos: " + movIncorrectos.ToString();
                 contadorErrores = 0;
                 contadorDescoordinaciones = 0;
@@ -478,17 +488,26 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             else if (mov18.preguntarMovIncorrecto() || mov19.preguntarMovIncorrecto())
             {
                 contadorErrores++;
+                if(mov18.preguntarMovIncorrecto())
+                    trackedBonePenHead.Brush = Brushes.Red;
+                if(mov19.preguntarMovIncorrecto())
+                    trackedBonePenBrazo.Brush = Brushes.Red;
             }
             //cuando se alcanza el maximo del movimiento a la derecha
             else if (mov18.preguntarMaxMovDerecha() || mov19.preguntarMaxMovArriba())
             {
                 if (!mov18.preguntarMaxMovDerecha() || !mov19.preguntarMaxMovArriba())
                     contadorDescoordinaciones++;
-                if(mov18.preguntarMaxMovDerecha())
+                if (mov18.preguntarMaxMovDerecha())
+                {
                     mov18.maxMovDerecha();
-                if(mov19.preguntarMaxMovArriba())
+                    trackedBonePenHead.Brush = Brushes.Aqua;
+                }
+                if (mov19.preguntarMaxMovArriba())
+                {
                     mov19.maxMovArriba();
-                lblStart.Visibility = Visibility.Hidden;
+                    trackedBonePenBrazo.Brush = Brushes.Aqua;
+                }
             }
             //cuando se alcanza el maximo del movimiento a la izquierda (finaliza el ejercicio)
             else if (mov18.preguntarMaxMovIzquierda() || mov19.preguntarMaxMovAbajo())
@@ -496,15 +515,21 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                 if (!mov18.preguntarMaxMovIzquierda() || !mov19.preguntarMaxMovAbajo())
                     contadorDescoordinaciones++;
                 if (mov18.preguntarMaxMovIzquierda())
+                {
                     mov18.maxMovIzquierda();
+                    trackedBonePenHead.Brush = Brushes.Green;
+                }
                 if (mov19.preguntarMaxMovAbajo())
+                {
                     mov19.maxMovAbajo();
+                    trackedBonePenBrazo.Brush = Brushes.Green;
+                }
                 if (mov18.getFinalizado() && mov19.getFinalizado())
                 {
                     contadorRepeticiones--;
                     movIniciado = false;
                     actualizarMarcadores();
-                    txtAyuda.Text = "Ejercicios correctos: " + movCorrectos.ToString() + "\nEjercicios descordinados: " + movRegulares.ToString() +
+                    txtAyuda.Text = "Ejercicios correctos: " + movCorrectos.ToString() + "\nEjercicios descordinados: " + movDescoordinados.ToString() +
                     "\nEjercicios erroneos: " + movIncorrectos.ToString();
                     if (contadorRepeticiones == 0)
                     {
@@ -513,14 +538,18 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                     }
                 }
             }
+            //txtCM.Text = mov19.getCodoMunieca().ToString();
+            //txtCMZ.Text = mov19.getCodoMuniecaZ().ToString();
+            //txtHC.Text = mov19.getHombroCodo().ToString();
+            //txtHCZ.Text = mov19.getHombroCodoZ().ToString();
         }
 
         private void actualizarMarcadores()
         {
             if (contadorErrores > 10)
                 movIncorrectos++;
-            else if (contadorDescoordinaciones > 10)
-                movRegulares++;
+            else if (contadorDescoordinaciones >= 2)
+                movDescoordinados++;
             else
                 movCorrectos++;
         }
@@ -532,55 +561,75 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         // ***Dibujar los huesos y articulaciones del esqueleto
         private void DrawBonesAndJoints(Skeleton skeleton, DrawingContext drawingContext)
         {
-            // Render Torso
-            this.DrawBone(skeleton, drawingContext, JointType.Head, JointType.ShoulderCenter);
-            this.DrawBone(skeleton, drawingContext, JointType.ShoulderCenter, JointType.ShoulderLeft);
-            this.DrawBone(skeleton, drawingContext, JointType.ShoulderCenter, JointType.ShoulderRight);
-            this.DrawBone(skeleton, drawingContext, JointType.ShoulderCenter, JointType.Spine);
-            this.DrawBone(skeleton, drawingContext, JointType.Spine, JointType.HipCenter);
-            this.DrawBone(skeleton, drawingContext, JointType.HipCenter, JointType.HipLeft);
-            this.DrawBone(skeleton, drawingContext, JointType.HipCenter, JointType.HipRight);
-
-            // Left Arm
-            this.DrawBone(skeleton, drawingContext, JointType.ShoulderLeft, JointType.ElbowLeft);
-            this.DrawBone(skeleton, drawingContext, JointType.ElbowLeft, JointType.WristLeft);
-            this.DrawBone(skeleton, drawingContext, JointType.WristLeft, JointType.HandLeft);
-
-            // Right Arm
-            this.DrawBone(skeleton, drawingContext, JointType.ShoulderRight, JointType.ElbowRight);
-            this.DrawBone(skeleton, drawingContext, JointType.ElbowRight, JointType.WristRight);
-            this.DrawBone(skeleton, drawingContext, JointType.WristRight, JointType.HandRight);
-
-            // Left Leg
-            this.DrawBone(skeleton, drawingContext, JointType.HipLeft, JointType.KneeLeft);
-            this.DrawBone(skeleton, drawingContext, JointType.KneeLeft, JointType.AnkleLeft);
-            this.DrawBone(skeleton, drawingContext, JointType.AnkleLeft, JointType.FootLeft);
-
-            // Right Leg
-            this.DrawBone(skeleton, drawingContext, JointType.HipRight, JointType.KneeRight);
-            this.DrawBone(skeleton, drawingContext, JointType.KneeRight, JointType.AnkleRight);
-            this.DrawBone(skeleton, drawingContext, JointType.AnkleRight, JointType.FootRight);
-
-
-
-            // Render Joints
-            foreach (Joint joint in skeleton.Joints)
+            if (dibujarEsqueleto)
             {
-                Brush drawBrush = null;
+                // Render Torso
+                this.DrawBone(skeleton, drawingContext, JointType.Head, JointType.ShoulderCenter);
+                this.DrawBone(skeleton, drawingContext, JointType.ShoulderCenter, JointType.ShoulderLeft);
+                this.DrawBone(skeleton, drawingContext, JointType.ShoulderCenter, JointType.ShoulderRight);
+                this.DrawBone(skeleton, drawingContext, JointType.ShoulderCenter, JointType.Spine);
+                this.DrawBone(skeleton, drawingContext, JointType.Spine, JointType.HipCenter);
+                this.DrawBone(skeleton, drawingContext, JointType.HipCenter, JointType.HipLeft);
+                this.DrawBone(skeleton, drawingContext, JointType.HipCenter, JointType.HipRight);
 
-                if (joint.TrackingState == JointTrackingState.Tracked)
-                {
-                    drawBrush = this.trackedJointBrush;                    
-                }
-                else if (joint.TrackingState == JointTrackingState.Inferred)
-                {
-                    drawBrush = this.inferredJointBrush;                    
-                }
+                // Left Arm
+                this.DrawBone(skeleton, drawingContext, JointType.ShoulderLeft, JointType.ElbowLeft);
+                this.DrawBone(skeleton, drawingContext, JointType.ElbowLeft, JointType.WristLeft);
+                this.DrawBone(skeleton, drawingContext, JointType.WristLeft, JointType.HandLeft);
 
-                if (drawBrush != null)
+                // Right Arm
+                this.DrawBone(skeleton, drawingContext, JointType.ShoulderRight, JointType.ElbowRight);
+                this.DrawBone(skeleton, drawingContext, JointType.ElbowRight, JointType.WristRight);
+                this.DrawBone(skeleton, drawingContext, JointType.WristRight, JointType.HandRight);
+
+                // Left Leg
+                this.DrawBone(skeleton, drawingContext, JointType.HipLeft, JointType.KneeLeft);
+                this.DrawBone(skeleton, drawingContext, JointType.KneeLeft, JointType.AnkleLeft);
+                this.DrawBone(skeleton, drawingContext, JointType.AnkleLeft, JointType.FootLeft);
+
+                // Right Leg
+                this.DrawBone(skeleton, drawingContext, JointType.HipRight, JointType.KneeRight);
+                this.DrawBone(skeleton, drawingContext, JointType.KneeRight, JointType.AnkleRight);
+                this.DrawBone(skeleton, drawingContext, JointType.AnkleRight, JointType.FootRight);
+
+
+
+                // Render Joints
+                foreach (Joint joint in skeleton.Joints)
                 {
-                    drawingContext.DrawEllipse(drawBrush, null, this.SkeletonPointToScreen(joint.Position), JointThickness, JointThickness);
+                    Brush drawBrush = null;
+
+                    if (joint.TrackingState == JointTrackingState.Tracked)
+                    {
+                        drawBrush = this.trackedJointBrush;
+                    }
+                    else if (joint.TrackingState == JointTrackingState.Inferred)
+                    {
+                        drawBrush = this.inferredJointBrush;
+                    }
+
+                    if (drawBrush != null)
+                    {
+                        drawingContext.DrawEllipse(drawBrush, null, this.SkeletonPointToScreen(joint.Position), JointThickness, JointThickness);
+
+
+                    }
                 }
+            }
+
+            if (!movIniciado && !movFinalizado) //dibujar los puntos de guia para la posición inicial
+            {
+                SkeletonPoint posSkeleton = new SkeletonPoint();
+                posSkeleton.X = skeleton.Joints[JointType.ShoulderCenter].Position.X;
+                posSkeleton.Y = skeleton.Joints[JointType.Head].Position.Y;
+                posSkeleton.Z = skeleton.Joints[JointType.ShoulderCenter].Position.Z;
+                Point pos = this.SkeletonPointToScreen(posSkeleton);
+                drawingContext.DrawEllipse(trackedJointBrush, null, pos, 10, 10);
+                posSkeleton.X = (float)getXPuntoMano(skeleton.Joints[JointType.ShoulderRight].Position.X, skeleton.Joints[JointType.ShoulderLeft].Position.X);
+                posSkeleton.Y = skeleton.Joints[JointType.ShoulderRight].Position.Y;
+                posSkeleton.Z = skeleton.Joints[JointType.ShoulderRight].Position.Z;
+                pos = this.SkeletonPointToScreen(posSkeleton);
+                drawingContext.DrawEllipse(trackedJointBrush, null, pos, 10, 10);
             }
         }
 
@@ -636,8 +685,8 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                 else
                     drawPen = this.trackedBonePen;
             }
-
-            drawingContext.DrawLine(drawPen, this.SkeletonPointToScreen(joint0.Position), this.SkeletonPointToScreen(joint1.Position));
+            
+            drawingContext.DrawLine(drawPen, this.SkeletonPointToScreen(joint0.Position), this.SkeletonPointToScreen(joint1.Position));            
         }
 
         /// <summary>
@@ -661,25 +710,16 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             }
         }
 
-        /// <summary>
-        /// Método click de botón "Repetir" el cual reinicia las variables que tiene que ver
-        /// con el movimiento de la cabeza para poder repetir el ejercicio sin tener que 
-        /// reiniciar el programa
-        /// </summary>
-        private void btnRepetir_Click(object sender, RoutedEventArgs e)
-        {
-            contFPS = 0;
-            movFinalizado = false;
-            //lblFin.Visibility = Visibility.Hidden;
-            //lblInicio.Visibility = Visibility.Visible;
-            //esperaInicial = true;
-        }
-
         private void btnIniciar_Click(object sender, RoutedEventArgs e)
         {
             tutorial = true;
             tutorialParte1 = true;
             txtAyuda.Text = "";
+            movCorrectos = 0;
+            movIncorrectos = 0;
+            movDescoordinados = 0;
+            contFPS = 0;
+            movFinalizado = false;
 
             
         }
@@ -691,6 +731,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                 if (tutorialParte1)
                 {
                     ImageC.Visibility = Visibility.Hidden;
+                    ImageE.Visibility = Visibility.Hidden;
                     figura1.Visibility = Visibility.Visible;
                     txtAyuda.Text += cadenaPosInicial[posEscritura].ToString();
                     posEscritura++;
@@ -698,7 +739,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                     {
                         tutorialParte1 = false;
                         tutorialParte2 = true;
-                        contFPS = -FPS; //espera para que el usuario vea la pos inicial
+                        contFPS = -(FPS * 2); //espera para que el usuario vea la pos inicial
                         posEscritura = 0;
                     }
                 }
@@ -709,42 +750,48 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                         txtAyuda.Text = "";
                     txtAyuda.Text += cadenaTutorial[posEscritura].ToString();
                     posEscritura++;
-                    if (posEscritura == cadenaTutorial.Length)
+                    if (posEscritura == cadenaTutorial.Length && figura1.Visibility == Visibility.Visible)
                     {
                         tutorialParte2 = false;
                         tutorialParte3 = true;
                         contFPS = -FPS; //espera para que el usuario vea la pos inicial
                         posEscritura = 0;
                     }
-                    if (figura1.Visibility == Visibility.Visible)//secuencia de imagenes
+                    else if (posEscritura == cadenaTutorial.Length)
+                        cadenaTutorial += " ";
+                    if (contVideo == 0)
                     {
-                        figura1.Visibility = Visibility.Hidden;
-                        figura2.Visibility = Visibility.Visible;
-                    }
-                    else if (figura2.Visibility == Visibility.Visible)
-                    {
-                        figura2.Visibility = Visibility.Hidden;
-                        figura3.Visibility = Visibility.Visible;
-                    }
-                    else if (figura3.Visibility == Visibility.Visible)
-                    {
-                        figura3.Visibility = Visibility.Hidden;
-                        figura4.Visibility = Visibility.Visible;
-                    }
-                    else if (figura4.Visibility == Visibility.Visible)
-                    {
-                        figura4.Visibility = Visibility.Hidden;
-                        figura5.Visibility = Visibility.Visible;
-                    }
-                    else if (figura5.Visibility == Visibility.Visible)
-                    {
-                        figura5.Visibility = Visibility.Hidden;
-                        figura1.Visibility = Visibility.Visible;
+                        if (figura1.Visibility == Visibility.Visible)//secuencia de imagenes
+                        {
+                            figura1.Visibility = Visibility.Hidden;
+                            figura2.Visibility = Visibility.Visible;
+                        }
+                        else if (figura2.Visibility == Visibility.Visible)
+                        {
+                            figura2.Visibility = Visibility.Hidden;
+                            figura3.Visibility = Visibility.Visible;
+                        }
+                        else if (figura3.Visibility == Visibility.Visible)
+                        {
+                            figura3.Visibility = Visibility.Hidden;
+                            figura4.Visibility = Visibility.Visible;
+                        }
+                        else if (figura4.Visibility == Visibility.Visible)
+                        {
+                            figura4.Visibility = Visibility.Hidden;
+                            figura5.Visibility = Visibility.Visible;
+                        }
+                        else if (figura5.Visibility == Visibility.Visible)
+                        {
+                            figura5.Visibility = Visibility.Hidden;
+                            figura1.Visibility = Visibility.Visible;
+                        }
                     }
                 }
                 else if (tutorialParte3)
                 {
                     ImageC.Visibility = Visibility.Visible;
+                    ImageE.Visibility = Visibility.Visible;
                     figura1.Visibility = Visibility.Hidden;
                     figura2.Visibility = Visibility.Hidden;
                     figura3.Visibility = Visibility.Hidden;
@@ -764,8 +811,11 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
 
             }
             contFPS++;
-            if (contFPS == FPS / 5)
+            contVideo++;
+            if (contFPS == FPS / 10)
                 contFPS = 0;
+            if (contVideo == FPS / 3)
+                contVideo = 0;
         }
 
         private void btnEstablecer_Click(object sender, RoutedEventArgs e)
@@ -773,6 +823,43 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             int repe = int.Parse(txtRepeticiones.Text);
             if (repe > 1 && repe <= 100)
                 contadorRepeticiones = repe;
+            txtRepeticiones.Text = contadorRepeticiones.ToString();
+        }
+
+        private void btnSaltar_Click(object sender, RoutedEventArgs e)
+        {
+            ImageC.Visibility = Visibility.Visible;
+            ImageE.Visibility = Visibility.Visible;
+            figura1.Visibility = Visibility.Hidden;
+            figura2.Visibility = Visibility.Hidden;
+            figura3.Visibility = Visibility.Hidden;
+            figura4.Visibility = Visibility.Hidden;
+            figura5.Visibility = Visibility.Hidden;
+            tutorial = false;
+            tutorialParte1 = false;
+            tutorialParte2 = false;
+            tutorialParte3 = false;
+            txtAyuda.Text = "";
+        }
+
+        private double getXPuntoMano(double hombroR, double hombroL)
+        {
+            double dis;
+            if (hombroR > 0 && hombroL > 0 || hombroR < 0 && hombroL < 0)
+                dis = Math.Abs(Math.Abs(hombroR) - Math.Abs(hombroL));
+            else
+                dis = Math.Abs(hombroR) + Math.Abs(hombroL);
+
+            return hombroR + (dis * 2);
+        }
+
+        private void checkBox1_Checked(object sender, RoutedEventArgs e)
+        {
+            if (!dibujarEsqueleto)
+                dibujarEsqueleto = true;
+            else
+                dibujarEsqueleto = false;
+
         }
     }
 }

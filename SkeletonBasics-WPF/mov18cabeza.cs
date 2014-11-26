@@ -34,6 +34,12 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         private int gradoActual, gradoPosErguido,
             gradoActualZ, gradoPosErguidoZ, gradoDif, gradoDifZ;
 
+        private int rangoErrorX = 5;
+
+        private int rangoErrorZ = 15;
+
+        private int rangoMinimoMovX = 25; 
+
 
         /// <summary>
         /// Inicializacion de componentes de la clase
@@ -49,12 +55,16 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         /// </summary>
         public void actualizarGradosInclinacion(Joint cabeza, Joint centroPecho)
         {
-            gradoPosErguido = gradoInclinacion(centroPecho.Position.X, centroPecho.Position.Y, centroPecho.Position.X, cabeza.Position.Y);
-            gradoPosErguidoZ = gradoInclinacion(centroPecho.Position.Z, centroPecho.Position.Y, centroPecho.Position.Z, cabeza.Position.Y);
-            gradoActual = gradoInclinacion(centroPecho.Position.X, centroPecho.Position.Y, cabeza.Position.X, cabeza.Position.Y);
-            gradoActualZ = gradoInclinacion(centroPecho.Position.Z, centroPecho.Position.Y, cabeza.Position.Z, cabeza.Position.Y);
-            gradoDif = gradoPosErguido - gradoActual;
-            gradoDifZ = System.Math.Abs(gradoPosErguidoZ - (gradoActualZ + 10)); //se suma 10 para regular el error de kinect en la detección
+            try
+            {
+                gradoPosErguido = gradoInclinacion(centroPecho.Position.X, centroPecho.Position.Y, centroPecho.Position.X, cabeza.Position.Y);
+                gradoPosErguidoZ = gradoInclinacion(centroPecho.Position.Z, centroPecho.Position.Y, centroPecho.Position.Z, cabeza.Position.Y);
+                gradoActual = gradoInclinacion(centroPecho.Position.X, centroPecho.Position.Y, cabeza.Position.X, cabeza.Position.Y);
+                gradoActualZ = gradoInclinacion(centroPecho.Position.Z, centroPecho.Position.Y, cabeza.Position.Z, cabeza.Position.Y);
+                gradoDif = gradoPosErguido - gradoActual;
+                gradoDifZ = System.Math.Abs(gradoPosErguidoZ - gradoActualZ); //se suma 10 para regular el error de kinect en la detección
+            }
+            catch { }
         }
 
 
@@ -63,7 +73,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         /// </summary>
         public bool preguntarIniciarMov()
         {
-            return !movIniciado && gradoDif < 2 && gradoDifZ <= 15;
+            return !movIniciado && Math.Abs(gradoDif) < rangoErrorX && gradoDifZ <= rangoErrorZ;
         }
 
         /// <summary>
@@ -80,7 +90,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         /// </summary>
         public bool preguntarMovIncorrecto()
         {
-            return movIniciado && gradoDifZ > 15;
+            return movIniciado && gradoDifZ > rangoErrorZ;
         }
 
         /// <summary>
@@ -96,7 +106,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         /// </summary>
         public bool preguntarMaxMovDerecha()
         {
-            return movDerechaIniciado && gradoDif >= 25;
+            return movDerechaIniciado && gradoDif >= rangoMinimoMovX;
         }
 
         /// <summary>
@@ -109,19 +119,11 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         }
 
         /// <summary>
-        /// Método que devuelve true si el usuario esta moviendo el cuello hacia la derecha
-        /// </summary>
-        public bool preguntarMovDerecha()
-        {
-            return movDerechaIniciado && gradoDif < 25 && gradoDif > 3;
-        }
-
-        /// <summary>
         /// Método que devuelve true si se ha alcanzado el máximo del movimiento hacia la izquierda
         /// </summary>
         public bool preguntarMaxMovIzquierda()
         {
-            return movIzquierdaIniciado && gradoDif <= -25;
+            return movIzquierdaIniciado && gradoDif <= -rangoMinimoMovX;
         }
 
         /// <summary>
@@ -137,14 +139,6 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         public bool getFinalizado()
         {
             return movFinalizado;
-        }
-
-        /// <summary>
-        /// Método que devuelve true si el usuario esta moviendo el cuello hacia la izquierda
-        /// </summary>
-        public bool preguntarMovIzquierda()
-        {
-            return movIzquierdaIniciado && gradoDif > -25 && gradoDif < 22;
         }
 
         /// <summary>
@@ -174,7 +168,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             //grados devueltos segun sea la recta: (el valor devuelto oscila entre 0 y 180 grados
             //----------90 grados
             //           |
-            //0 grados __.__ 0 grados
+            //180grados__.__ 0 grados
             //           |
             //          90 grados
 

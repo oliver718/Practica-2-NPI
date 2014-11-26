@@ -63,10 +63,14 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             this.hombro = hombro;
             this.codo = codo;
             this.munieca = munieca;
-            gradoHombroCodo = Math.Abs(gradoInclinacion(hombro.Position.X, hombro.Position.Y, codo.Position.X, codo.Position.Y));
-            gradoCodoMunieca = calcAngleXY(pointsToVector(hombro,codo), pointsToVector(codo,munieca));
-            gradoHombroCodoZ = Math.Abs(gradoInclinacion(hombro.Position.X, hombro.Position.Z, codo.Position.X, codo.Position.Z));
-            gradoCodoMuniecaZ = Math.Abs(gradoInclinacion(codo.Position.X, codo.Position.Z, munieca.Position.X, munieca.Position.Z));
+            try
+            {
+                gradoHombroCodo = Math.Abs(gradoInclinacion(hombro.Position.X, hombro.Position.Y, codo.Position.X, codo.Position.Y));
+                gradoCodoMunieca = calcAngleXY(pointsToVector(hombro, codo), pointsToVector(codo, munieca));
+                gradoHombroCodoZ = Math.Abs(gradoInclinacion(hombro.Position.X, hombro.Position.Z, codo.Position.X, codo.Position.Z) + 10);//sumo 5 por errores en la detección
+                gradoCodoMuniecaZ = Math.Abs(gradoInclinacion(codo.Position.X, codo.Position.Z, munieca.Position.X, munieca.Position.Z) + 15);//sumo 10 por errores en la detección
+            }
+            catch{}
         }
 
 
@@ -76,8 +80,8 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         /// </summary>
         public bool preguntarIniciarMov()
         {
-            return !movIniciado && gradoHombroCodo < 10 && gradoCodoMunieca < 5 &&
-                gradoHombroCodoZ < 15 && gradoCodoMuniecaZ < 15 && hombro.Position.X < codo.Position.X;
+            return !movIniciado && gradoHombroCodo < 10 && gradoHombroCodoZ < 20 && gradoCodoMunieca < 5 &&
+                 gradoCodoMuniecaZ < 20 && hombro.Position.X < codo.Position.X;
         }
 
         /// <summary>
@@ -94,7 +98,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         /// </summary>
         public bool preguntarMovIncorrecto()
         {
-            return movIniciado && (gradoHombroCodoZ >= 25 || gradoHombroCodo >= 15 || hombro.Position.X > codo.Position.X ||
+            return movIniciado && (gradoHombroCodoZ >= 20 || gradoHombroCodo >= 15 || gradoCodoMuniecaZ > 60 || hombro.Position.X > codo.Position.X ||
                 hombro.Position.Y > (munieca.Position.Y + 0.5));
         }
 
