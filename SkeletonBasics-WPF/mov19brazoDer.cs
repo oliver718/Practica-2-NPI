@@ -17,22 +17,22 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
     public class mov19brazoDer
     {
         /// <summary>
-        /// valdrá true si comenzó el movimiento de cabeza, false en caso contrario
+        /// valdrá true si comenzó el movimiento, false en caso contrario
         /// </summary>
         private bool movIniciado;
 
         /// <summary>
-        /// valdrá true cuando se complete el movimiento de la cabeza hacia la derecha
+        /// valdrá true cuando se complete el movimiento del brazo hacia arriba
         /// </summary>
         private bool movArribaIniciado;
 
         /// <summary>
-        /// valdrá true cuando se complete el movimiento de la cabeza hacia la izquierda
+        /// valdrá true cuando se complete el movimiento del brazo hacia abajo
         /// </summary>
         private bool movAbajoIniciado;
 
         /// <summary>
-        /// valdrá true cuando el movimiento de cabeza se realice correctamente
+        /// valdrá true cuando el ejercicio se realice correctamente
         /// </summary>
         private bool movFinalizado;
 
@@ -41,8 +41,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         ///<summary>
         /// grado de inclinación
         /// </summary>
-        private int gradoActual, gradoPosErguido, gradoDifCodoMunieca, gradoDifHombroCodo,
-            gradoActualZ, gradoPosErguidoZ, gradoDif, gradoDifZ, gradoHombroCodo, gradoCodoMunieca, gradoHombroCodoZ, gradoCodoMuniecaZ, gradoDifHombroCodoZ, gradoDifCodoMuniecaZ;
+        private int gradoHombroCodo, gradoCodoMunieca, gradoHombroCodoZ, gradoCodoMuniecaZ;
 
 
         /// <summary>
@@ -51,12 +50,11 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         public mov19brazoDer()
         {
             movIniciado = movArribaIniciado = movAbajoIniciado = movFinalizado = false;
-            gradoActual = gradoPosErguido = gradoActualZ = gradoPosErguidoZ = gradoDif = gradoDifZ = 0;
-            gradoHombroCodo = gradoCodoMunieca = gradoHombroCodoZ = gradoCodoMuniecaZ = gradoDifHombroCodoZ = gradoDifCodoMuniecaZ = gradoDifCodoMunieca = gradoDifHombroCodo = 0;
+            gradoHombroCodo = gradoCodoMunieca = gradoHombroCodoZ = gradoCodoMuniecaZ = 0;
         }
 
         /// <summary>
-        /// Metodo que actualiza los grados de inclinacion de la cabeza
+        /// Metodo que actualiza los grados de inclinacion
         /// </summary>
         public void actualizarGradosInclinacion(Joint hombro, Joint codo, Joint munieca)
         {
@@ -80,8 +78,8 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         /// </summary>
         public bool preguntarIniciarMov()
         {
-            return !movIniciado && gradoHombroCodo < 10 && gradoHombroCodoZ < 20 && gradoCodoMunieca < 5 &&
-                 gradoCodoMuniecaZ < 20 && hombro.Position.X < codo.Position.X;
+            return !movIniciado && gradoHombroCodo < 10 && gradoHombroCodoZ < 25 && gradoCodoMunieca < 5 &&
+                 gradoCodoMuniecaZ < 25 && hombro.Position.X < codo.Position.X;
         }
 
         /// <summary>
@@ -98,7 +96,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         /// </summary>
         public bool preguntarMovIncorrecto()
         {
-            return movIniciado && (gradoHombroCodoZ >= 20 || gradoHombroCodo >= 15 || gradoCodoMuniecaZ > 60 || hombro.Position.X > codo.Position.X ||
+            return movIniciado && (gradoHombroCodoZ >= 25 || gradoHombroCodo >= 20 || gradoCodoMuniecaZ > 65 || hombro.Position.X > codo.Position.X ||
                 hombro.Position.Y > (munieca.Position.Y + 0.5));
         }
 
@@ -111,15 +109,15 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         }
 
         /// <summary>
-        /// Método que devuelve true si se ha alcanzado el máximo del movimiento hacia la derecha
+        /// Método que devuelve true si se ha alcanzado el máximo del movimiento hacia arriba
         /// </summary>
         public bool preguntarMaxMovArriba()
         {
-            return movArribaIniciado && gradoCodoMunieca > 120;
+            return movArribaIniciado && gradoCodoMunieca > 115;
         }
 
         /// <summary>
-        /// Método que que indica al objeto que se ha alcanzado el máximo del movimiento hacia la derecha
+        /// Método que que indica al objeto que se ha alcanzado el máximo del movimiento hacia arriba
         /// </summary>
         public void maxMovArriba()
         {
@@ -128,15 +126,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         }
 
         /// <summary>
-        /// Método que devuelve true si el usuario esta moviendo el cuello hacia la derecha
-        /// </summary>
-        public bool preguntarMovArriba()
-        {
-            return movArribaIniciado && gradoCodoMunieca > 10;
-        }
-
-        /// <summary>
-        /// Método que devuelve true si se ha alcanzado el máximo del movimiento hacia la izquierda
+        /// Método que devuelve true si se ha alcanzado el máximo del movimiento hacia abajo
         /// </summary>
         public bool preguntarMaxMovAbajo()
         {
@@ -144,7 +134,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         }
 
         /// <summary>
-        /// Método que que indica al objeto que se ha alcanzado el máximo del movimiento hacia la izquierda
+        /// Método que que indica al objeto que se ha alcanzado el máximo del movimiento hacia abajo
         /// </summary>
         public void maxMovAbajo()
         {
@@ -153,16 +143,9 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             movIniciado = false;
         }
 
-        /// <summary>
-        /// Método que devuelve true si el usuario esta moviendo el cuello hacia la izquierda
-        /// </summary>
-        public bool preguntarMovAbajo()
-        {
-            return movAbajoIniciado && gradoCodoMunieca <= 120;
-        }
 
         /// <summary>
-        /// Método que devuelve los grados de inclinación de la cabeza del usuario hacia la derecha o hacia la izquierda
+        /// Método que devuelve los grados de inclinación del hueso hobro-codo en el eje X
         /// </summary>
         public int getHombroCodo()
         {
@@ -170,7 +153,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         }
 
         /// <summary>
-        /// Método que devuelve los grados de inclinación de la cabeza del usuario hacia adelante ó hacia atras
+        /// Método que devuelve los grados de inclinación del hueso codo-muñeca en el eje X
         /// </summary>
         public int getCodoMunieca()
         {
@@ -178,7 +161,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         }
 
         /// <summary>
-        /// Método que devuelve los grados de inclinación de la cabeza del usuario hacia la derecha o hacia la izquierda
+        /// Método que devuelve los grados de inclinación del hueso hobro-codo en el eje Z
         /// </summary>
         public int getHombroCodoZ()
         {
@@ -186,13 +169,16 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         }
 
         /// <summary>
-        /// Método que devuelve los grados de inclinación de la cabeza del usuario hacia adelante ó hacia atras
+        /// Método que devuelve los grados de inclinación del hueso codo-muñeca en el eje X
         /// </summary>
         public int getCodoMuniecaZ()
         {
             return this.gradoCodoMuniecaZ;
         }
 
+        ///<summary>
+        /// método que devuelve si el movimiento ha sido finalizado o no
+        /// </summary>
         public bool getFinalizado()
         {
             return movFinalizado;
@@ -209,14 +195,17 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             float grado = 0;
             float m = (y2 - y1) / (x2 - x1);
             grado = (float)(System.Math.Atan(m) * (180 / System.Math.PI));
-            //if (grado < 0)
-            //    grado = 180 + grado;
 
             return (int)grado;
         }
 
+
+        /// <summary>
+        /// This function convert two points to a vector
+        /// </summary>
+        //método conservado del código original
         private myPoint pointsToVector(Joint p1, Joint p2)
-        {   // This function convert two points to a vector
+        {  
             myPoint v = new myPoint();
             v.x = p1.Position.X - p2.Position.X;
             v.y = p1.Position.Y - p2.Position.Y;
@@ -225,8 +214,12 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             return v;
         }
 
+        /// <summary>
+        /// This functions calculates the angle between two vectors.
+        /// </summary>
+        //método conservado del código original
         private int calcAngleXY(myPoint v1, myPoint v2)
-        {   // This functions calculates the angle between two vectors.
+        {  
             double cosin = (v1.x * v2.x) + (v1.y * v2.y);
             double sum1 = Math.Sqrt((v1.x * v1.x) + (v1.y * v1.y));
             double sum2 = Math.Sqrt((v2.x * v2.x) + (v2.y * v2.y));

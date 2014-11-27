@@ -29,16 +29,25 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         private bool movFinalizado;
 
         ///<summary>
-        /// grado de inclinación
+        /// grados de inclinación de las rectas del esqueleto para este movimiento
         /// </summary>
         private int gradoActual, gradoPosErguido,
             gradoActualZ, gradoPosErguidoZ, gradoDif, gradoDifZ;
 
+        ///<summary>
+        /// rango de error para la posición inicial
+        /// </summary>
         private int rangoErrorX = 5;
 
-        private int rangoErrorZ = 15;
+        ///<summary>
+        /// rango de error para el movimiento de la cabeza hacia adelante ó hacia atrás
+        /// </summary>
+        private int rangoErrorZ = 20;
 
-        private int rangoMinimoMovX = 25; 
+        ///<summary>
+        /// rango mínimo que el usuario tendrá que mover la cabeza hacia la derecha ó izquierda para que el movimiento sea válido
+        /// </summary>
+        private int rangoMinimoMovX = 22; 
 
 
         /// <summary>
@@ -126,6 +135,11 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             return movIzquierdaIniciado && gradoDif <= -rangoMinimoMovX;
         }
 
+        public bool preguntarMovMalFinalizado()
+        {
+            return movIniciado && gradoDif <= -rangoMinimoMovX;
+        }
+
         /// <summary>
         /// Método que que indica al objeto que se ha alcanzado el máximo del movimiento hacia la izquierda
         /// </summary>
@@ -136,6 +150,9 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             movIniciado = false;
         }
 
+        ///<summary>
+        /// método que devuelve si el movimiento ha sido finalizado o no
+        /// </summary>
         public bool getFinalizado()
         {
             return movFinalizado;

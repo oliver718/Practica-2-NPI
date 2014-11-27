@@ -8,6 +8,6 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-[assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("images/figura5.png")]
+[assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("sonidofin.wav")]
 
 

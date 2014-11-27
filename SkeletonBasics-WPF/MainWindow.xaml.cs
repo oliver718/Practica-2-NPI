@@ -132,16 +132,6 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
 
         private bool tutorial = false;
 
-        ///// <summary>
-        ///// valdrá true cuando se complete el movimiento de la cabeza hacia la derecha
-        ///// </summary>
-        //private bool movDerechaIniciado = false;
-
-        ///// <summary>
-        ///// valdrá true cuando se complete el movimiento de la cabeza hacia la izquierda
-        ///// </summary>
-        //private bool movIzquierdaIniciado = false;
-
         /// <summary>
         /// valdrá true cuando el movimiento de cabeza se realice correctamente
         /// </summary>
@@ -157,42 +147,91 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         /// </summary>
         private int contFPS = 0;
 
+        ///<summary>
+        /// contador de frames (usado al mostrar la secuencia de imagenes del tutorial)
+        /// </summary>
         private int contVideo = 0;
 
         ///<summary>
-        /// Variable que valdrá true cuando al iniciar el programa el usuario esté esperando a que se inicie el ejercicio
+        /// contador de imagenes (usado para contar el numero de veces que se muestran las secuencias de imagenes
         /// </summary>
+        private int contSecuencia;
 
-        private string cadenaPosInicial = "Cada ejercicio tiene que iniciarlo con la posición que se muestra en la figura:";
-        private string cadenaTutorial = "A continuación se muestra un tutorial de como tiene que ejecutar el ejercicio:";
-        private string cadenaEmpezar = "Coloquese en la posición inicial para comenzar la sesión";
+        ///<summary>
+        /// variable booleana que se utiliza para saber cuando se reproduce la secuencia de imagenes
+        /// </summary>
+        private bool reproducirSecuencia = false;
 
+        ///<summary>
+        /// Primera cadena que se muestra en el tutorial
+        /// </summary>
+        private string cadenaPosInicial = "Cada repetición tiene que iniciarla con la posición que se muestra en la figura:";
+
+        ///<summary>
+        /// segunda cadena que se muestra en el tutorial
+        /// </summary>
+        private string cadenaTutorial = "A continuación se muestra un secuencia de como tiene que ejecutar cada repetición:";
+
+        ///<summary>
+        /// tercera y última cadena que se muestra en el tutorial
+        /// </summary>
+        private string cadenaEmpezar = "Coloquese en la posición inicial para comenzar su sesión de ejercicio. \n En pantalla se muestran dos puntos amarillos como guia para la posición inicial";
+
+        ///<summary>
+        /// variable usada para saber cual es el siguinte caracter que se tiene que mostrar en la escritura de las cadenas del tutorial
+        /// </summary>
         private int posEscritura = 0;
 
+        ///<summary>
+        /// variable que almacena el número de errores que comete el usuario en un ejercicio
+        /// </summary>
         private int contadorErrores = 0;
+
+        ///<summary>
+        /// variable que almacena el número de descoordinaciones en los movimientos cabeza/brazo que comete el usuario en un ejercicio
+        /// </summary>
         private int contadorDescoordinaciones = 0;
 
+        ///<summary>
+        /// numero que ejercicios correctos que lleva el usuario en una sesión de ejercicio
+        /// </summary>
         private int movCorrectos = 0;
+
+        ///<summary>
+        /// numero que ejercicios incorrectos que lleva el usuario en una sesión de ejercicio
+        /// </summary>
         private int movIncorrectos = 0;
+
+        ///<summary>
+        /// numero que ejercicios descoordinados que lleva el usuario en una sesión de ejercicio
+        /// </summary>
         private int movDescoordinados = 0;
 
+        ///<summary>
+        /// variable que almacena el número de veces que el usuario repetirá el ejercicio.
+        /// </summary>
         private int contadorRepeticiones = 1;
 
+        ///<summary>
+        /// variable usada para mostrar la primera parte del tutorial cuando valga true
+        /// </summary>
         private bool tutorialParte1 = false;
+
+        ///<summary>
+        /// variable usada para mostrar la segunda parte del tutorial cuando valga true
+        /// </summary>
         private bool tutorialParte2 = false;
+
+        ///<summary>
+        /// variable usada para mostrar la tercera parte del tutorial cuando valga true
+        /// </summary>
         private bool tutorialParte3 = false;
 
+        ///<summary>
+        /// variable usada para controla si se dibuja o no el esqueleto
+        /// </summary>
         private bool dibujarEsqueleto = false;
-        /////<summary>
-        ///// grado de inclinación
-        ///// </summary>
-        //private int gradoActual = 0, gradoPosErguido = 0, 
-        //    gradoActualZ = 0, gradoPosErguidoZ = 0, gradoDif = 0, gradoDifZ = 0;
-
-        ///// <summary>
-        ///// Detecting move of left hand to shoulder XY (XZ in kinect)
-        ///// </summary>
-        //private MoveLeftHandtoShoulderXY moveLeftHandtoShoulderXY;
+        
 
         /// <summary>
         /// crear objeto mov18cabeza
@@ -215,16 +254,12 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         public MainWindow()
         {
             InitializeComponent();
-            //moveLeftHandtoShoulderXY = new MoveLeftHandtoShoulderXY();
-            //try
-            //{
-            //    txtCM.Text = sensor.ElevationAngle.ToString();
-            //}
-            //catch{
-            //}
             mov18 = new mov18cabeza();
             mov19 = new mov19brazoDer();
             txtAyuda.Text = "Pulse el botón \"Iniciar\" para comenzar con el ejercicio.\nAbajo puede ajustar los parametros que desee.";
+            txtRepeticiones.Text = contadorRepeticiones.ToString();
+            btnSaltar.Visibility = Visibility.Hidden;
+            
         }
 
         /// <summary>
@@ -420,10 +455,10 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                         if (skel.TrackingState == SkeletonTrackingState.Tracked)
                         {
                             if (tutorial)
-                                iniciarTutorial();
+                                iniciarTutorial();//lanzar el tutorial
                             else
                             {
-                                if (!movFinalizado)//********************************************************************************************************************************
+                                if (!movFinalizado)
                                     this.movimiento18y19(skel); //llamada al metodo para detectar los movimientos
                                 this.DrawBonesAndJoints(skel, dc);
                                 
@@ -449,7 +484,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
 
 
         /// <summary>
-        /// Metodo que detecta el movimiento de cuello del usuario
+        /// Metodo principal para controlar la secuencia de movimintos de los ejercicios
         /// </summary>
         /// <param name="skeleton">objeto esqueleto</param>
         private void movimiento18y19(Skeleton skeleton)
@@ -471,7 +506,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             if(contFPS == FPS/3)
                 contFPS = 0;
 
-            //si no se ha iniciado el movimiento y el usuario esta con la cabeza recta se puede iniciar el movimiento
+            //Si el movimiento no se ha iniciado y el usuario se encuentra en las posiciones correctas el movimiento se iniciará
             if (mov18.preguntarIniciarMov() && mov19.preguntarIniciarMov())
             {
                 mov18.iniciarMov();
@@ -484,7 +519,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                 contadorErrores = 0;
                 contadorDescoordinaciones = 0;
             }
-            //movimiento incorrecto (cabeza hacia adelante o hacia atrás) se avisa con el color rojo y reiniciando el movimiento
+            //Controla si el usuario ha cometido algún error en algunos de los movimientos
             else if (mov18.preguntarMovIncorrecto() || mov19.preguntarMovIncorrecto())
             {
                 contadorErrores++;
@@ -493,7 +528,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                 if(mov19.preguntarMovIncorrecto())
                     trackedBonePenBrazo.Brush = Brushes.Red;
             }
-            //cuando se alcanza el maximo del movimiento a la derecha
+            //Controla cuando el usuario completa la primera parte de del ejercicio (brazo hacia arriba y cabeza hacia la derecha)
             else if (mov18.preguntarMaxMovDerecha() || mov19.preguntarMaxMovArriba())
             {
                 if (!mov18.preguntarMaxMovDerecha() || !mov19.preguntarMaxMovArriba())
@@ -509,7 +544,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                     trackedBonePenBrazo.Brush = Brushes.Aqua;
                 }
             }
-            //cuando se alcanza el maximo del movimiento a la izquierda (finaliza el ejercicio)
+            //Controla cuando se completa la segunda parte del movimiento (brazo hacia abajo y cabeza hacia la izquierda)
             else if (mov18.preguntarMaxMovIzquierda() || mov19.preguntarMaxMovAbajo())
             {
                 if (!mov18.preguntarMaxMovIzquierda() || !mov19.preguntarMaxMovAbajo())
@@ -524,7 +559,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                     mov19.maxMovAbajo();
                     trackedBonePenBrazo.Brush = Brushes.Green;
                 }
-                if (mov18.getFinalizado() && mov19.getFinalizado())
+                if (mov18.getFinalizado() && mov19.getFinalizado())//cuando finalizan las dos partes
                 {
                     contadorRepeticiones--;
                     movIniciado = false;
@@ -535,20 +570,30 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                     {
                         lblFin.Visibility = Visibility.Visible;
                         movFinalizado = true;
+                        movCorrectos = 0;
+                        movDescoordinados = 0;
+                        movIncorrectos = 0;
                     }
                 }
             }
-            //txtCM.Text = mov19.getCodoMunieca().ToString();
-            //txtCMZ.Text = mov19.getCodoMuniecaZ().ToString();
-            //txtHC.Text = mov19.getHombroCodo().ToString();
-            //txtHCZ.Text = mov19.getHombroCodoZ().ToString();
+            //controla si el usuario ha realizado mal el movimiento y lo finaliza saltandose algún paso.
+            else if (mov18.preguntarMovMalFinalizado())
+            {
+                mov18.maxMovDerecha();
+                mov19.maxMovArriba();
+                contadorErrores = 100;
+            }
         }
 
+
+        /// <summary>
+        /// Método que actualiza los marcadores del  usuario en una sesión de ejercicio (correctos, incorrectos y descoordinados)
+        /// </summary>
         private void actualizarMarcadores()
         {
             if (contadorErrores > 10)
                 movIncorrectos++;
-            else if (contadorDescoordinaciones >= 2)
+            else if (contadorDescoordinaciones == 4)
                 movDescoordinados++;
             else
                 movCorrectos++;
@@ -624,12 +669,12 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                 posSkeleton.Y = skeleton.Joints[JointType.Head].Position.Y;
                 posSkeleton.Z = skeleton.Joints[JointType.ShoulderCenter].Position.Z;
                 Point pos = this.SkeletonPointToScreen(posSkeleton);
-                drawingContext.DrawEllipse(trackedJointBrush, null, pos, 10, 10);
+                drawingContext.DrawEllipse(inferredJointBrush, null, pos, 10, 10);
                 posSkeleton.X = (float)getXPuntoMano(skeleton.Joints[JointType.ShoulderRight].Position.X, skeleton.Joints[JointType.ShoulderLeft].Position.X);
                 posSkeleton.Y = skeleton.Joints[JointType.ShoulderRight].Position.Y;
                 posSkeleton.Z = skeleton.Joints[JointType.ShoulderRight].Position.Z;
                 pos = this.SkeletonPointToScreen(posSkeleton);
-                drawingContext.DrawEllipse(trackedJointBrush, null, pos, 10, 10);
+                drawingContext.DrawEllipse(inferredJointBrush, null, pos, 10, 10);
             }
         }
 
@@ -710,114 +755,136 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             }
         }
 
-        private void btnIniciar_Click(object sender, RoutedEventArgs e)
-        {
-            tutorial = true;
-            tutorialParte1 = true;
-            txtAyuda.Text = "";
-            movCorrectos = 0;
-            movIncorrectos = 0;
-            movDescoordinados = 0;
-            contFPS = 0;
-            movFinalizado = false;
 
-            
-        }
-
+        /// <summary>
+        /// Método que lanza el tutorial del movimiento, el cual se divide en tres partes.
+        /// </summary>
         private void iniciarTutorial()
         {
-            if (contFPS == 0)
+            if (tutorialParte1 && contFPS == 0)
             {
-                if (tutorialParte1)
+                if (posEscritura == 0)
+                    txtAyuda.Text = "";
+                ImageC.Visibility = Visibility.Hidden;
+                ImageE.Visibility = Visibility.Hidden;
+                figura1.Visibility = Visibility.Visible;
+                txtAyuda.Text += cadenaPosInicial[posEscritura].ToString();
+                posEscritura++;
+                if (posEscritura == cadenaPosInicial.Length)
                 {
-                    ImageC.Visibility = Visibility.Hidden;
-                    ImageE.Visibility = Visibility.Hidden;
-                    figura1.Visibility = Visibility.Visible;
-                    txtAyuda.Text += cadenaPosInicial[posEscritura].ToString();
-                    posEscritura++;
-                    if (posEscritura == cadenaPosInicial.Length)
-                    {
-                        tutorialParte1 = false;
-                        tutorialParte2 = true;
-                        contFPS = -(FPS * 2); //espera para que el usuario vea la pos inicial
-                        posEscritura = 0;
-                    }
+                    tutorialParte1 = false;
+                    tutorialParte2 = true;
+                    contFPS = -(FPS*2); //espera para que el usuario vea la pos inicial
+                    posEscritura = 0;
                 }
+            }
 
-                else if (tutorialParte2)
+            else if (tutorialParte2)
+            {
+                if (contFPS == 0 && !reproducirSecuencia)
                 {
                     if (txtAyuda.Text == cadenaPosInicial)
                         txtAyuda.Text = "";
                     txtAyuda.Text += cadenaTutorial[posEscritura].ToString();
                     posEscritura++;
-                    if (posEscritura == cadenaTutorial.Length && figura1.Visibility == Visibility.Visible)
+                    if (posEscritura == cadenaTutorial.Length)
+                        reproducirSecuencia = true;
+                    else if (posEscritura == cadenaTutorial.Length)
+                        cadenaTutorial += " ";
+                }
+                if (reproducirSecuencia && contVideo == 0)
+                {
+                    if (figura1.Visibility == Visibility.Visible)//secuencia de imagenes
+                    {
+                        figura1.Visibility = Visibility.Hidden;
+                        figura2.Visibility = Visibility.Visible;
+                    }
+                    else if (figura2.Visibility == Visibility.Visible)
+                    {
+                        figura2.Visibility = Visibility.Hidden;
+                        figura3.Visibility = Visibility.Visible;
+                    }
+                    else if (figura3.Visibility == Visibility.Visible)
+                    {
+                        figura3.Visibility = Visibility.Hidden;
+                        figura4.Visibility = Visibility.Visible;
+                    }
+                    else if (figura4.Visibility == Visibility.Visible)
+                    {
+                        figura4.Visibility = Visibility.Hidden;
+                        figura5.Visibility = Visibility.Visible;
+                    }
+                    else if (figura5.Visibility == Visibility.Visible)
+                    {
+                        figura5.Visibility = Visibility.Hidden;
+                        figura1.Visibility = Visibility.Visible;
+                    }
+                    contSecuencia++;
+                    if (contSecuencia == 25)
                     {
                         tutorialParte2 = false;
                         tutorialParte3 = true;
-                        contFPS = -FPS; //espera para que el usuario vea la pos inicial
                         posEscritura = 0;
-                    }
-                    else if (posEscritura == cadenaTutorial.Length)
-                        cadenaTutorial += " ";
-                    if (contVideo == 0)
-                    {
-                        if (figura1.Visibility == Visibility.Visible)//secuencia de imagenes
-                        {
-                            figura1.Visibility = Visibility.Hidden;
-                            figura2.Visibility = Visibility.Visible;
-                        }
-                        else if (figura2.Visibility == Visibility.Visible)
-                        {
-                            figura2.Visibility = Visibility.Hidden;
-                            figura3.Visibility = Visibility.Visible;
-                        }
-                        else if (figura3.Visibility == Visibility.Visible)
-                        {
-                            figura3.Visibility = Visibility.Hidden;
-                            figura4.Visibility = Visibility.Visible;
-                        }
-                        else if (figura4.Visibility == Visibility.Visible)
-                        {
-                            figura4.Visibility = Visibility.Hidden;
-                            figura5.Visibility = Visibility.Visible;
-                        }
-                        else if (figura5.Visibility == Visibility.Visible)
-                        {
-                            figura5.Visibility = Visibility.Hidden;
-                            figura1.Visibility = Visibility.Visible;
-                        }
+                        contSecuencia = 0;
+                        contFPS = -(FPS * 2);
                     }
                 }
-                else if (tutorialParte3)
-                {
-                    ImageC.Visibility = Visibility.Visible;
-                    ImageE.Visibility = Visibility.Visible;
-                    figura1.Visibility = Visibility.Hidden;
-                    figura2.Visibility = Visibility.Hidden;
-                    figura3.Visibility = Visibility.Hidden;
-                    figura4.Visibility = Visibility.Hidden;
-                    figura5.Visibility = Visibility.Hidden;
-                    if (txtAyuda.Text == cadenaTutorial)
-                        txtAyuda.Text = "";
-                    txtAyuda.Text += cadenaEmpezar[posEscritura].ToString();
-                    posEscritura++;
-                    if (posEscritura == cadenaEmpezar.Length)
-                    {
-                        tutorialParte3 = false;
-                        tutorial = false;
-                        posEscritura = 0;
-                    }
-                }
-
+                contVideo++;
+                if (contVideo == FPS / 2)
+                    contVideo = 0;
             }
+            else if (tutorialParte3 && contFPS == 0)
+            {
+                ImageC.Visibility = Visibility.Visible;
+                ImageE.Visibility = Visibility.Visible;
+                figura1.Visibility = Visibility.Hidden;
+                figura2.Visibility = Visibility.Hidden;
+                figura3.Visibility = Visibility.Hidden;
+                figura4.Visibility = Visibility.Hidden;
+                figura5.Visibility = Visibility.Hidden;
+                if (txtAyuda.Text == cadenaTutorial)
+                    txtAyuda.Text = "";
+                txtAyuda.Text += cadenaEmpezar[posEscritura].ToString();
+                posEscritura++;
+                if (posEscritura == cadenaEmpezar.Length)
+                {
+                    tutorialParte3 = false;
+                    tutorial = false;
+                    posEscritura = 0;
+                    btnSaltar.Visibility = Visibility.Hidden;
+                }
+            }
+
             contFPS++;
-            contVideo++;
             if (contFPS == FPS / 10)
                 contFPS = 0;
-            if (contVideo == FPS / 3)
-                contVideo = 0;
         }
 
+        /// <summary>
+        /// Método que salta cuando se pulsa el botón de iniciar ejercicio
+        /// </summary>
+        private void btnIniciar_Click(object sender, RoutedEventArgs e)
+        {
+            tutorial = true;
+            tutorialParte1 = true;
+            txtAyuda.Text = "Coloquese frente a kinect para comenzar con el tutorial...";
+            movCorrectos = 0;
+            movIncorrectos = 0;
+            movDescoordinados = 0;
+            contFPS = 0;
+            movFinalizado = false;
+            lblFin.Visibility = Visibility.Hidden;
+            btnSaltar.Visibility = Visibility.Visible;
+            contadorRepeticiones = int.Parse(txtRepeticiones.Text);
+            mov18 = new mov18cabeza();
+            mov19 = new mov19brazoDer();
+
+
+        }
+
+        /// <summary>
+        /// Método que salta cuando se pulsa el botón para establecer el número de repeticiones
+        /// </summary>
         private void btnEstablecer_Click(object sender, RoutedEventArgs e)
         {
             int repe = int.Parse(txtRepeticiones.Text);
@@ -826,6 +893,9 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             txtRepeticiones.Text = contadorRepeticiones.ToString();
         }
 
+        /// <summary>
+        /// Método que se ejecuta al pulsar el botón de saltar el tutorial
+        /// </summary>
         private void btnSaltar_Click(object sender, RoutedEventArgs e)
         {
             ImageC.Visibility = Visibility.Visible;
@@ -840,8 +910,15 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             tutorialParte2 = false;
             tutorialParte3 = false;
             txtAyuda.Text = "";
+            btnSaltar.Visibility = Visibility.Hidden;
+            posEscritura = 0;
+            
         }
 
+        /// <summary>
+        /// Método que devuelve el punto donde hay que pintar el circulo guia para que el usuario ponga la mano en la posición inicial.
+        /// Se toma como referencia la distancia entre los hombros * 2
+        /// </summary>
         private double getXPuntoMano(double hombroR, double hombroL)
         {
             double dis;
@@ -853,6 +930,9 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             return hombroR + (dis * 2);
         }
 
+        /// <summary>
+        /// Método del checkbox para activar o desactivar el dibujar el esqueleto
+        /// </summary>
         private void checkBox1_Checked(object sender, RoutedEventArgs e)
         {
             if (!dibujarEsqueleto)
