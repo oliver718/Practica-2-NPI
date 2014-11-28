@@ -78,8 +78,8 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         /// </summary>
         public bool preguntarIniciarMov()
         {
-            return !movIniciado && gradoHombroCodo < 10 && gradoHombroCodoZ < 25 && gradoCodoMunieca < 5 &&
-                 gradoCodoMuniecaZ < 25 && hombro.Position.X < codo.Position.X;
+            return !movIniciado && gradoHombroCodo < 10 && gradoHombroCodoZ < 30 && gradoCodoMunieca < 5 &&
+                 gradoCodoMuniecaZ < 30 && hombro.Position.X < codo.Position.X;
         }
 
         /// <summary>
@@ -96,7 +96,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         /// </summary>
         public bool preguntarMovIncorrecto()
         {
-            return movIniciado && (gradoHombroCodoZ >= 25 || gradoHombroCodo >= 20 || gradoCodoMuniecaZ > 65 || hombro.Position.X > codo.Position.X ||
+            return movIniciado && (gradoHombroCodoZ >= 30 || gradoHombroCodo >= 20 || gradoCodoMuniecaZ > 75 || hombro.Position.X > codo.Position.X ||
                 hombro.Position.Y > (munieca.Position.Y + 0.5));
         }
 
@@ -106,6 +106,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         public void movIncorrecto()
         {
             movIniciado = movArribaIniciado = movAbajoIniciado = false;
+            movFinalizado = true;
         }
 
         /// <summary>
@@ -184,7 +185,13 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             return movFinalizado;
         }
 
-
+        ///<summary>
+        /// método que pone el movimiento como finalizado (se usa para el control de movimientos erroneos)
+        /// </summary>
+        public void setFinalizado()
+        {
+            movFinalizado = true;
+        }
 
         /// <summary>
         /// Metodo que devuelve el grado de inclinación de una recta (valor entre 0 y 180).

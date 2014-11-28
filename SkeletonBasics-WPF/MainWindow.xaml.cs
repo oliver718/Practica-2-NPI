@@ -137,6 +137,11 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         /// </summary>
         private bool movFinalizado = true;
 
+        /// <summary>
+        /// variable que se utiliza para controlar que el tutorial solo se muestre una vez al inicio del ejercicio.
+        /// </summary>
+        private bool primeraVez = true;
+
         ///<summary>
         /// número de frames por segundo
         /// </summary>
@@ -210,7 +215,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         ///<summary>
         /// variable que almacena el número de veces que el usuario repetirá el ejercicio.
         /// </summary>
-        private int contadorRepeticiones = 1;
+        private int contadorRepeticiones;
 
         ///<summary>
         /// variable usada para mostrar la primera parte del tutorial cuando valga true
@@ -257,9 +262,11 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             mov18 = new mov18cabeza();
             mov19 = new mov19brazoDer();
             txtAyuda.Text = "Pulse el botón \"Iniciar\" para comenzar con el ejercicio.\nAbajo puede ajustar los parametros que desee.";
-            txtRepeticiones.Text = contadorRepeticiones.ToString();
+            contadorRepeticiones = 3;
+            sldRepe.Value = contadorRepeticiones;
+            lblRep.Content = contadorRepeticiones.ToString();
             btnSaltar.Visibility = Visibility.Hidden;
-            
+          
         }
 
         /// <summary>
@@ -507,7 +514,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                 contFPS = 0;
 
             //Si el movimiento no se ha iniciado y el usuario se encuentra en las posiciones correctas el movimiento se iniciará
-            if (mov18.preguntarIniciarMov() && mov19.preguntarIniciarMov())
+            if (!movIniciado && mov18.preguntarIniciarMov() && mov19.preguntarIniciarMov())
             {
                 mov18.iniciarMov();
                 mov19.iniciarMov();
@@ -520,16 +527,21 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                 contadorDescoordinaciones = 0;
             }
             //Controla si el usuario ha cometido algún error en algunos de los movimientos
-            else if (mov18.preguntarMovIncorrecto() || mov19.preguntarMovIncorrecto())
+            else if (movIniciado && mov18.preguntarMovIncorrecto() || mov19.preguntarMovIncorrecto())
             {
                 contadorErrores++;
                 if(mov18.preguntarMovIncorrecto())
                     trackedBonePenHead.Brush = Brushes.Red;
                 if(mov19.preguntarMovIncorrecto())
                     trackedBonePenBrazo.Brush = Brushes.Red;
+                if (contadorErrores > 10)
+                {
+                    mov18.setFinalizado();
+                    mov19.setFinalizado();
+                }
             }
             //Controla cuando el usuario completa la primera parte de del ejercicio (brazo hacia arriba y cabeza hacia la derecha)
-            else if (mov18.preguntarMaxMovDerecha() || mov19.preguntarMaxMovArriba())
+            else if (movIniciado && mov18.preguntarMaxMovDerecha() || mov19.preguntarMaxMovArriba())
             {
                 if (!mov18.preguntarMaxMovDerecha() || !mov19.preguntarMaxMovArriba())
                     contadorDescoordinaciones++;
@@ -545,7 +557,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                 }
             }
             //Controla cuando se completa la segunda parte del movimiento (brazo hacia abajo y cabeza hacia la izquierda)
-            else if (mov18.preguntarMaxMovIzquierda() || mov19.preguntarMaxMovAbajo())
+            else if (movIniciado && mov18.preguntarMaxMovIzquierda() || mov19.preguntarMaxMovAbajo())
             {
                 if (!mov18.preguntarMaxMovIzquierda() || !mov19.preguntarMaxMovAbajo())
                     contadorDescoordinaciones++;
@@ -559,29 +571,32 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                     mov19.maxMovAbajo();
                     trackedBonePenBrazo.Brush = Brushes.Green;
                 }
-                if (mov18.getFinalizado() && mov19.getFinalizado())//cuando finalizan las dos partes
-                {
-                    contadorRepeticiones--;
-                    movIniciado = false;
-                    actualizarMarcadores();
-                    txtAyuda.Text = "Ejercicios correctos: " + movCorrectos.ToString() + "\nEjercicios descordinados: " + movDescoordinados.ToString() +
-                    "\nEjercicios erroneos: " + movIncorrectos.ToString();
-                    if (contadorRepeticiones == 0)
-                    {
-                        lblFin.Visibility = Visibility.Visible;
-                        movFinalizado = true;
-                        movCorrectos = 0;
-                        movDescoordinados = 0;
-                        movIncorrectos = 0;
-                    }
-                }
             }
             //controla si el usuario ha realizado mal el movimiento y lo finaliza saltandose algún paso.
-            else if (mov18.preguntarMovMalFinalizado())
+            else if (movIniciado && mov18.preguntarMovMalFinalizado())
             {
-                mov18.maxMovDerecha();
-                mov19.maxMovArriba();
+                mov18.setFinalizado();
+                mov19.setFinalizado();
                 contadorErrores = 100;
+            }
+
+            if (mov18.getFinalizado() && mov19.getFinalizado())//cuando finalizan las dos partes
+            {
+                mov18 = new mov18cabeza();
+                mov19 = new mov19brazoDer();
+                contadorRepeticiones--;
+                movIniciado = false;
+                actualizarMarcadores();
+                txtAyuda.Text = "Ejercicios correctos: " + movCorrectos.ToString() + "\nEjercicios descordinados: " + movDescoordinados.ToString() +
+                "\nEjercicios erroneos: " + movIncorrectos.ToString();
+                if (contadorRepeticiones == 0)
+                {
+                    lblFin.Visibility = Visibility.Visible;
+                    movFinalizado = true;
+                    movCorrectos = 0;
+                    movDescoordinados = 0;
+                    movIncorrectos = 0;
+                }
             }
         }
 
@@ -820,7 +835,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                         figura1.Visibility = Visibility.Visible;
                     }
                     contSecuencia++;
-                    if (contSecuencia == 25)
+                    if (contSecuencia == 15)
                     {
                         tutorialParte2 = false;
                         tutorialParte3 = true;
@@ -865,32 +880,40 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         /// </summary>
         private void btnIniciar_Click(object sender, RoutedEventArgs e)
         {
-            tutorial = true;
-            tutorialParte1 = true;
-            txtAyuda.Text = "Coloquese frente a kinect para comenzar con el tutorial...";
-            movCorrectos = 0;
-            movIncorrectos = 0;
-            movDescoordinados = 0;
-            contFPS = 0;
-            movFinalizado = false;
-            lblFin.Visibility = Visibility.Hidden;
-            btnSaltar.Visibility = Visibility.Visible;
-            contadorRepeticiones = int.Parse(txtRepeticiones.Text);
-            mov18 = new mov18cabeza();
-            mov19 = new mov19brazoDer();
+            if (primeraVez)
+            {
+                tutorial = true;
+                tutorialParte1 = true;
+                txtAyuda.Text = "Coloquese frente a kinect para comenzar con el tutorial...";
+                movCorrectos = 0;
+                movIncorrectos = 0;
+                movDescoordinados = 0;
+                contFPS = 0;
+                movFinalizado = false;
+                lblFin.Visibility = Visibility.Hidden;
+                btnSaltar.Visibility = Visibility.Visible;
+                contadorRepeticiones = (int)sldRepe.Value;
+                mov18 = new mov18cabeza();
+                mov19 = new mov19brazoDer();
+                primeraVez = false;
+            }
+
+            else
+            {
+                btnSaltar_Click(sender, e);
+                movCorrectos = 0;
+                movIncorrectos = 0;
+                movDescoordinados = 0;
+                contFPS = 0;
+                movFinalizado = false;
+                lblFin.Visibility = Visibility.Hidden;
+                contadorRepeticiones = (int)sldRepe.Value;
+                mov18 = new mov18cabeza();
+                mov19 = new mov19brazoDer();
+            
+            }
 
 
-        }
-
-        /// <summary>
-        /// Método que salta cuando se pulsa el botón para establecer el número de repeticiones
-        /// </summary>
-        private void btnEstablecer_Click(object sender, RoutedEventArgs e)
-        {
-            int repe = int.Parse(txtRepeticiones.Text);
-            if (repe > 1 && repe <= 100)
-                contadorRepeticiones = repe;
-            txtRepeticiones.Text = contadorRepeticiones.ToString();
         }
 
         /// <summary>
@@ -940,6 +963,21 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             else
                 dibujarEsqueleto = false;
 
+        }
+
+
+        /// <summary>
+        /// Método del Sleider para establecer el número de veces que se desea hacer el ejercicio
+        /// </summary>
+        private void sldRepe_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            System.Windows.Controls.Slider slider = e.OriginalSource as System.Windows.Controls.Slider;
+
+            if (slider != null)
+            {
+                contadorRepeticiones = (int)slider.Value;
+                lblRep.Content = contadorRepeticiones.ToString();
+            }
         }
     }
 }

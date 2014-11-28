@@ -42,12 +42,12 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         ///<summary>
         /// rango de error para el movimiento de la cabeza hacia adelante ó hacia atrás
         /// </summary>
-        private int rangoErrorZ = 20;
+        private int rangoErrorZ = 15;
 
         ///<summary>
         /// rango mínimo que el usuario tendrá que mover la cabeza hacia la derecha ó izquierda para que el movimiento sea válido
         /// </summary>
-        private int rangoMinimoMovX = 22; 
+        private int rangoMinimoMovX = 20; 
 
 
         /// <summary>
@@ -108,6 +108,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         public void movIncorrecto()
         {
             movIniciado = movDerechaIniciado = movIzquierdaIniciado = false;
+            movFinalizado = true;
         }
 
         /// <summary>
@@ -156,6 +157,14 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         public bool getFinalizado()
         {
             return movFinalizado;
+        }
+
+        ///<summary>
+        /// método que pone el movimiento como finalizado (se usa para el control de movimientos erroneos)
+        /// </summary>
+        public void setFinalizado()
+        {
+            movFinalizado = true;
         }
 
         /// <summary>

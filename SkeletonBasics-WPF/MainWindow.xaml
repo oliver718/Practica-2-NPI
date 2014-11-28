@@ -1,7 +1,7 @@
 ﻿<Window x:Class="Microsoft.Samples.Kinect.SkeletonBasics.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Skeleton Basics" Height="856" Width="770" Loaded="WindowLoaded" Closing="WindowClosing">
+        Title="Práctica 2 NPI Oliver Sánchez Marín" Height="856" Width="770" Loaded="WindowLoaded" Closing="WindowClosing">
 
     <Window.Resources>
         <SolidColorBrush x:Key="MediumGreyBrush" Color="#ff6e6e6e"/>
@@ -49,49 +49,48 @@
     <Grid Name="layoutGrid" Margin="10 0 10 0">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="670*"/>
-            <RowDefinition Height="47"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <DockPanel Grid.Row="0" Margin="0 0 0 20">
-            <Image DockPanel.Dock="Left" Source="Images\Logo.png" Stretch="Fill" Height="32" Width="81" Margin="0 10 0 5"/>
-            <TextBlock DockPanel.Dock="Right" Margin="0 0 -1 0" VerticalAlignment="Bottom" Foreground="{StaticResource MediumGreyBrush}" FontFamily="Segoe UI" FontSize="18">Skeleton Basics</TextBlock>
-            <Image Grid.Column="1" Source="Images\Status.png" Stretch="None" HorizontalAlignment="Center" Margin="0 0 0 5"/>
+            <TextBlock  TextWrapping="WrapWithOverflow" FontFamily="Comic Sans MS" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Grid.Row="0" FontSize="20" FontWeight="Bold" Name="txtAyuda" TextAlignment="Center" Height="80" />
         </DockPanel>
-        <Viewbox Grid.Row="1" Stretch="Uniform" Width="640" Height="480" HorizontalAlignment="Center">
+        <Viewbox Grid.Row="1" Stretch="Uniform" HorizontalAlignment="Center">
             <Image Name="ImageC" Width="640" Height="480"/>
         </Viewbox>
-        <Viewbox Grid.Row="1" Stretch="Uniform" Width="640" Height="480" HorizontalAlignment="Center">
+        <Viewbox Grid.Row="1" Stretch="Uniform" HorizontalAlignment="Center">
             <Image Name="ImageE" Width="640" Height="480"/>
         </Viewbox>
-        <Viewbox Grid.Row="1" Stretch="Uniform" Width="640" Height="480" HorizontalAlignment="Center">
+        <Viewbox Grid.Row="1" Stretch="Uniform" HorizontalAlignment="Center">
             <Image Name="figura1" Source="Images\figura1.png" Width="640" Height="480" Visibility="Hidden"/>
         </Viewbox>
-        <Viewbox Grid.Row="1" Stretch="Uniform" Width="640" Height="480" HorizontalAlignment="Center">
+        <Viewbox Grid.Row="1" Stretch="Uniform" HorizontalAlignment="Center">
             <Image Name="figura2" Source="Images\figura2.png" Width="640" Height="480" Visibility="Hidden"/>
         </Viewbox>
-        <Viewbox Grid.Row="1" Stretch="Uniform" Width="640" Height="480" HorizontalAlignment="Center">
+        <Viewbox Grid.Row="1" Stretch="Uniform" HorizontalAlignment="Center">
             <Image Name="figura3" Source="Images\figura3.png" Width="640" Height="480" Visibility="Hidden"/>
         </Viewbox>
-        <Viewbox Grid.Row="1" Stretch="Uniform" Width="640" Height="480" HorizontalAlignment="Center">
+        <Viewbox Grid.Row="1" Stretch="Uniform" HorizontalAlignment="Center">
             <Image Name="figura4" Source="Images\figura4.png" Width="640" Height="480" Visibility="Hidden" />
         </Viewbox>
-        <Viewbox Grid.Row="1" Stretch="Uniform" Width="640" Height="480" HorizontalAlignment="Center">
+        <Viewbox Grid.Row="1" Stretch="Uniform" HorizontalAlignment="Center">
             <Image Name="figura5" Source="Images\figura5.png" Width="640" Height="480" Visibility="Hidden" />
         </Viewbox>
-        <CheckBox Grid.Row="2" Style="{StaticResource SquareCheckBox}" Content="Seated Mode" Height="Auto" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0 10 10 10" Name="checkBoxSeatedMode" Checked="CheckBoxSeatedModeChanged" Unchecked="CheckBoxSeatedModeChanged"/>
-        <StatusBar Grid.Row="3" HorizontalAlignment="Stretch" Name="statusBar" VerticalAlignment="Bottom" Background="White" Foreground="{StaticResource MediumGreyBrush}">
+        <Label Grid.Row="1" Content="EJERCICIO FINALIZADO"  FontSize="48" FontWeight="Bold" Foreground="#FFC8FFFF" Height="79" HorizontalAlignment="Center" Name="lblFin" VerticalAlignment="Center" Visibility="Hidden" Width="543" Background="#FF52318F" Margin="92,261,92,277" />
+
+        <Button Grid.Row="2" FontSize="15" FontWeight="Normal" Height="34" HorizontalAlignment="Center" Name="btnIniciar" VerticalAlignment="Center" Width="136"  Content="Iniciar ejercicio" Click="btnIniciar_Click" Margin="0,5,0,0" />
+        <Button Grid.Row="2" Content="Saltar tutorial" FontSize="15" FontWeight="Normal" Height="34" HorizontalAlignment="Right" Name="btnSaltar" VerticalAlignment="Center" Width="105" Click="btnSaltar_Click" Margin="0,5,0,0" />
+        <CheckBox Grid.Row="3" Style="{StaticResource SquareCheckBox}" Content="Modo sentado" Height="Auto" HorizontalAlignment="Left" VerticalAlignment="Center" Name="checkBoxSeatedMode" Checked="CheckBoxSeatedModeChanged" Unchecked="CheckBoxSeatedModeChanged"/>
+        <CheckBox Grid.Row="3" Content="Mostrar esqueleto" Height="Auto" HorizontalAlignment="Left" Name="checkBox1" Style="{StaticResource SquareCheckBox}" VerticalAlignment="Center" Checked="checkBox1_Checked" Margin="180,0,0,0" />
+        <Label Grid.Row="3" FontFamily="Segoe UI" FontSize="18" Foreground="{StaticResource MediumGreyBrush}" Height="35" HorizontalAlignment="Right"  Name="lblRep" VerticalAlignment="Center" Width="43" Margin="0,0,10,0" />
+        <Slider Grid.Row="3" Height="23" HorizontalAlignment="Right" Maximum="50" Minimum="1" Name="sldRepe" VerticalAlignment="Center" Width="175" ValueChanged="sldRepe_ValueChanged" Margin="0,0,60,0" />
+        <Label Grid.Row="3" Content="Repeticiones: " FontFamily="Segoe UI" FontSize="18" Foreground="{StaticResource MediumGreyBrush}" Height="35" HorizontalAlignment="Right"  Name="label3" VerticalAlignment="Center" Width="116" Margin="0,0,250,0" />
+        <StatusBar Grid.Row="4" HorizontalAlignment="Left" Name="statusBar" VerticalAlignment="Center" Background="White" Foreground="{StaticResource MediumGreyBrush}" Height="26">
             <StatusBarItem Padding="0 0 0 10">
                 <TextBlock Name="statusBarText" Margin="-1 0 0 0">Click 'Seated' to change skeletal pipeline type!</TextBlock>
             </StatusBarItem>
         </StatusBar>
-        <TextBlock  TextWrapping="WrapWithOverflow" FontFamily="Comic Sans MS" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="11,0,1,582" Grid.Row="1" FontSize="20" FontWeight="Bold" Name="txtAyuda" TextAlignment="Left" />
-        <Button FontSize="15" FontWeight="Normal" Height="34" HorizontalAlignment="Left" Margin="284,635,0,0" Name="btnIniciar" VerticalAlignment="Top" Width="136" Grid.Row="1" Content="Iniciar ejercicio" Click="btnIniciar_Click" />
-        <TextBox Grid.Row="2" Height="23" HorizontalAlignment="Left" Margin="494,14,0,0" Name="txtRepeticiones" VerticalAlignment="Top" Width="120" />
-        <Label Content="Repeticiones: " FontFamily="Segoe UI" FontSize="18" Foreground="{StaticResource MediumGreyBrush}" Grid.Row="2" Height="35" HorizontalAlignment="Left" Margin="372,6,0,0" Name="label3" VerticalAlignment="Top" Width="116" />
-        <Button Content="Establecer" FontSize="15" FontWeight="Normal" Height="34" HorizontalAlignment="Left" Margin="628,6,0,0" Name="btnEstablecer" VerticalAlignment="Top" Width="75" Grid.Row="2" Click="btnEstablecer_Click" />
-        <Label Content="EJERCICIO FINALIZADO" FontSize="48" FontWeight="Bold" Foreground="#FFCB0000" Height="63" HorizontalAlignment="Left" Margin="105,566,0,0" Name="lblFin" VerticalAlignment="Top" Visibility="Hidden" Width="543" Grid.Row="1" />
-        <Button Content="Saltar tutorial" FontSize="15" FontWeight="Normal" Height="34" HorizontalAlignment="Left" Margin="611,635,0,0" Name="btnSaltar" VerticalAlignment="Top" Width="105" Grid.Row="1" Click="btnSaltar_Click" />
-        <CheckBox Content="Mostrar esqueleto" Height="Auto" HorizontalAlignment="Left" Margin="137,11,0,12" Name="checkBox1" Style="{StaticResource SquareCheckBox}" VerticalAlignment="Center" Grid.Row="2" Checked="checkBox1_Checked" />
     </Grid>
 </Window>
